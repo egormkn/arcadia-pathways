@@ -1,0 +1,251 @@
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.04 [en] (X11; I; Linux 2.0.29 i586) [Netscape]">
+   <TITLE>Twine 1.0 C Programming Manual</TITLE>
+</HEAD>
+<BODY>
+&nbsp;
+<TABLE BORDER=0 WIDTH="100%" NOSAVE >
+<TR NOSAVE>
+<TD WIDTH="350">
+<H1>
+<IMG SRC="title.gif" HEIGHT=100 WIDTH=300 ALIGN=LEFT></H1>
+</TD>
+
+<TD WIDTH="100%" NOSAVE>
+<UL><B>James Marsh </B>5 May 1998&nbsp;
+<BR>Email: <A HREF="mailto:marshj@cs.man.ac.uk">marshj@cs.man.ac.uk</A>&nbsp;
+
+<P>For general information see the <A HREF="readme.html">Readme</A></UL>
+</TD>
+</TR>
+</TABLE>
+
+<H1>
+
+<HR WIDTH="100%">User Guide</H1>
+
+<UL>Functions are declared in the file <TT>twine.h</TT> which should be
+included in all C files using twines. The program should then be linked
+with the twine dynamic link library (DLL). For example:</UL>
+
+<BLOCKQUOTE>
+<BLOCKQUOTE><TT>gcc myprog.c -o myprog -l twine</TT></BLOCKQUOTE>
+All operations on the Twine are performed via a set of functions. Function
+calls take the form of:
+<BLOCKQUOTE><TT>ErrorCode = Function (Result, [Target], Argument)</TT></BLOCKQUOTE>
+All functions (except <TT><A HREF="#TW_GetErrorMessage">TW_GetErrorMessage</A></TT>)
+return an error code. This is an enumerated type that indicates whether
+the call was successful, and if not, possibly why not.</BLOCKQUOTE>
+
+<H1>
+Functions</H1>
+
+<BLOCKQUOTE>
+<H3>
+TW_AddControl</H3>
+
+<BLOCKQUOTE><TT>TW_ERROR=TW_AddControl (TW_TWINE, TW_INTERVAL, TW_VALUE)</TT>
+
+<P>Add a control point to a Twine.</BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<BLOCKQUOTE>
+<H3>
+TW_DeleteTwine</H3>
+
+<BLOCKQUOTE><TT>TW_ERROR=TW_DeleteTwine (TW_TWINE)</TT>
+
+<P>Free all memory associated with a Twine. The Twine then becomes uninitialised
+and cannot be used until <TT><A HREF="#TW_InitialiseTwine">TW_InitialiseTwine</A></TT>
+is called again.</BLOCKQUOTE>
+
+<H3>
+TW_EvaluateTwine</H3>
+
+<BLOCKQUOTE><TT>TW_ERROR=TW_EvaluateTwine (TW_VALUE *, TW_TWINE, TW_INTERVAL)</TT>
+
+<P>Evaluate the Twine at <TT>TW_INTERVAL</TT> and return the appropriate
+<TT>TW_VALUE</TT>.</BLOCKQUOTE>
+
+<H3>
+<A NAME="TW_GetErrorMessage"></A>TW_GetErrorMessage</H3>
+
+<BLOCKQUOTE><TT>char * = TW_GetErrorMessage(TW_ERROR)</TT>
+
+<P>Return a string describing the <TT>TW_ERROR</TT> code.</BLOCKQUOTE>
+
+<H3>
+TW_GetTwineType</H3>
+
+<BLOCKQUOTE><TT>TW_ERROR=TW_ChangeTwineType (TW_TYPE*, TW_TWINE)</TT>
+
+<P>Get the type of the Twine. (See <A HREF="readme.htm#Twine Types">Twine
+Types</A>).</BLOCKQUOTE>
+
+<H3>
+<A NAME="TW_InitialiseTwine"></A>TW_InitialiseTwine</H3>
+
+<BLOCKQUOTE><TT>TW_ERROR=TW_InitialiseTwine (TW_TWINE *, TW_TYPE)</TT>
+
+<P>Initialise a new Twine. This function must be called before any other
+function can be applied to the Twine. The type of the Twine must be specified.
+(See <A HREF="readme.htm#Twine Types">Twine Types</A>).</BLOCKQUOTE>
+
+<H3>
+<B>TW_PackTwine</B></H3>
+
+<BLOCKQUOTE><TT>TW_ERROR=TW_PackTwine (double **control_array, int *entries,
+TW_TWINE)</TT>
+
+<P>Return the number of control points in a Twine in <TT>*entries</TT>
+and an array of pairs of doubles in <TT>control_array</TT> of the form
+[interval, value, interval, value, ...]. It is the calling routine's responsibility
+to free the memory used by <TT><FONT FACE="Times New Roman">control_array</FONT></TT>
+by using the standard <TT>free()</TT> function.</BLOCKQUOTE>
+
+<H3>
+TW_SetTwineType</H3>
+
+<BLOCKQUOTE><TT>TW_ERROR=TW_ChangeTwineType (TW_TWINE, TW_TYPE)</TT>
+
+<P>Change the type of the Twine. (See <A HREF="readme.htm#Twine Types">Twine
+Types</A>).</BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<H1>
+<A NAME="Datatypes"></A>Datatypes</H1>
+
+<BLOCKQUOTE>&nbsp;
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="80%" >
+<TR>
+<TD VALIGN=TOP WIDTH="10%">
+<H4>
+<TT>TW_TWINE</TT></H4>
+</TD>
+
+<TD VALIGN=TOP WIDTH="90%">
+<BLOCKQUOTE>A Twine.</BLOCKQUOTE>
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP WIDTH="10%">
+<H4>
+<TT>TW_ERROR</TT></H4>
+</TD>
+
+<TD VALIGN=TOP WIDTH="90%">
+<BLOCKQUOTE>The type of the enumerated error returned from all functions.
+(See <A HREF="#Error Codes">Error Codes</A> for possible values).</BLOCKQUOTE>
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP WIDTH="10%">
+<H4>
+<TT>TW_INTERVAL</TT></H4>
+</TD>
+
+<TD VALIGN=TOP WIDTH="90%">
+<BLOCKQUOTE>The type of the interval part of a point on a Twine. This is
+presently defined as a <TT>double</TT>.</BLOCKQUOTE>
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP WIDTH="10%">
+<H4>
+<TT>TW_VALUE</TT></H4>
+</TD>
+
+<TD VALIGN=TOP WIDTH="90%">
+<BLOCKQUOTE>The type of the value part of a point on a Twine. This is presently
+defined as a <TT>double</TT>.</BLOCKQUOTE>
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP WIDTH="10%">
+<H4>
+<TT>TW_TYPE</TT></H4>
+</TD>
+
+<TD VALIGN=TOP WIDTH="90%">
+<BLOCKQUOTE>The type of the enumerated value that defines the end conditions
+for the Twine (see <A HREF="readme.htm#Twine Types">Twine Types</A>). The
+possible values are <TT>TW_TYPE_Limit</TT>, <TT>TW_TYPE_Repeat</TT>, <TT>TW_TYPE_ContinueSmooth</TT>,
+<TT>TW_TYPE_ContinueLinear</TT> or <TT>TW_TYPE_ContinueConstant</TT>.</BLOCKQUOTE>
+</TD>
+</TR>
+</TABLE>
+&nbsp;</BLOCKQUOTE>
+
+<H1>
+<A NAME="Error Codes"></A>Error Codes</H1>
+
+<BLOCKQUOTE>&nbsp;
+<TABLE BORDER=0 CELLPADDING=2 WIDTH="80%" >
+<TR>
+<TD VALIGN=TOP WIDTH="10%">
+<H4>
+<TT>TW_ERROR_OK</TT></H4>
+</TD>
+
+<TD VALIGN=TOP WIDTH="90%">
+<BLOCKQUOTE>The function was successful. There were no problems.</BLOCKQUOTE>
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP WIDTH="10%">
+<H4>
+<TT>TW_ERROR_OutOfMemory</TT></H4>
+</TD>
+
+<TD VALIGN=TOP WIDTH="90%">
+<BLOCKQUOTE>There was not enough memory to complete the function.</BLOCKQUOTE>
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP WIDTH="10%">
+<H4>
+<TT>TW_ERROR_Failed</TT></H4>
+</TD>
+
+<TD VALIGN=TOP WIDTH="90%">
+<BLOCKQUOTE>The function failed. The reason is unknown.</BLOCKQUOTE>
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP WIDTH="10%">
+<H4>
+<TT>TW_ERROR_OutOfRange</TT></H4>
+</TD>
+
+<TD VALIGN=TOP WIDTH="90%">
+<BLOCKQUOTE>An attempt was made to operate on part of a Twine that was
+not defined.</BLOCKQUOTE>
+</TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP WIDTH="10%">
+<H4>
+<TT>TW_ERROR_TwineNotInitialised</TT></H4>
+</TD>
+
+<TD VALIGN=TOP WIDTH="90%">
+<BLOCKQUOTE>An attempt was made to use an uninitialised Twine. It is often
+not possible to trap this error. Using an uninitialised Twine is more likely
+to crash the program. You should not rely on this error being returned.</BLOCKQUOTE>
+</TD>
+</TR>
+</TABLE>
+&nbsp;</BLOCKQUOTE>
+
+</BODY>
+</HTML>

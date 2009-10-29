@@ -1,0 +1,147 @@
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="FORMATTER" CONTENT="Microsoft FrontPage 2.0">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.04 [en] (X11; I; Linux 2.0.29 i586) [Netscape]">
+   <TITLE>Twine 1.0 Readme</TITLE>
+</HEAD>
+<BODY>
+&nbsp;
+<TABLE BORDER=0 WIDTH="100%" NOSAVE >
+<TR NOSAVE>
+<TD WIDTH="350">
+<H1>
+<IMG SRC="title.gif" HEIGHT=100 WIDTH=300 ALIGN=LEFT></H1>
+</TD>
+
+<TD WIDTH="100%" NOSAVE>
+<UL><B>James Marsh </B>5 May 1998&nbsp;
+<BR>Email: <A HREF="mailto:marshj@cs.man.ac.uk">marshj@cs.man.ac.uk</A>&nbsp;
+
+<P>For usage information see the <A HREF="manual.html">User Guide</A></UL>
+</TD>
+</TR>
+</TABLE>
+
+<H1>
+
+<HR WIDTH="100%">Introduction</H1>
+
+<BLOCKQUOTE>Programs often sample behaviour and interpolate between these
+samples in order to reduce the amount of information that needs to be stored.
+An animation system, for example, may just define object positions in key
+frames. By smoothly moving between these key positions, a reasonable frame-rate
+may be obtained, even though information is only stored for a couple of
+frames.</BLOCKQUOTE>
+
+<BLOCKQUOTE>
+<H2>
+What Are Twines?</H2>
+</BLOCKQUOTE>
+
+<BLOCKQUOTE>Simply following a straight line between successive positions
+in an interpolated sequence would result in undesirable behaviour. Sharp
+changes of direction would occur at control points as the line representing
+the change in value starts moving towards the next control point. A slightly
+more complex algorithm is therefore required that takes into account not
+only the position of the next control point, but also the one after that.
+In this way the interpolated values can be calculated such that they follow
+a curve, smoothly passing through control points with no abrupt changes
+in direction.
+
+<P>There is a myriad of algorithms for generating curves. These are usually
+based on systems of control points, such as NURBS for example. Most algorithms
+however are more complex than required for interpolation. Often they are
+three or four-dimensional and involve either weights at control points
+or extra control points to influence the shape of the curve. Many are also
+not efficient to implement, especially at having their control points updated.
+For the purposes of interpolation, the aim is to estimate the shape in
+between control points, not describe it. A much simpler algorithm would
+therefore not only be sufficient, but desirable.
+
+<P>Twines are my implementation of two-dimensional curves. They relate
+one value to another using control points to define the shape of the curve.
+Some of the benefits of using twines are:
+<UL>
+<LI>
+Twines are intended for rapid real-time use. They are very efficient at
+being both modified and evaluated. Control points are stored in efficient
+balanced trees and the shape of the curve is implicit from this.</LI>
+
+<LI>
+The curve is guaranteed pass through all the control points smoothly.</LI>
+
+<LI>
+The curve will never loop or have other strange effects. There will always
+be one y value for any x value.</LI>
+
+<LI>
+Sections of curves between control points are only influenced by the closest
+four control points, so updates further along the curve will not cause
+unwanted side-effects.</LI>
+
+<LI>
+Easy to use as they are implemented in a shared DLL.</LI>
+
+<LI>
+They have a good name :-)</LI>
+</UL>
+</BLOCKQUOTE>
+
+<H1>
+<A NAME="Twine Types"></A>Twine Types</H1>
+
+<BLOCKQUOTE>There are a number of different types of Twine. The type defines
+their behaviour outside of the range defined by the control points.</BLOCKQUOTE>
+
+<BLOCKQUOTE>
+<H3>
+<IMG SRC="limited.gif" HEIGHT=123 WIDTH=224 ALIGN=RIGHT>Limited Range</H3>
+</BLOCKQUOTE>
+
+<BLOCKQUOTE>The Twine is constrained to the range defined by the control
+points with the maximum and minimum interval values. If an attempt is made
+to evaluate the Twine outside of this range, an error will be returned.<BR CLEAR=BOTH>
+<BR></BLOCKQUOTE>
+
+<BLOCKQUOTE>
+<H3>
+<IMG SRC="repeating.gif" HEIGHT=123 WIDTH=224 ALIGN=RIGHT>Repeating</H3>
+</BLOCKQUOTE>
+
+<BLOCKQUOTE>The Twine repeats forever. The same defined shape of the Twine
+repeats at each end of the defined range. Bear in mind that the shape of
+the Twine therefore at each end will be influenced by the position of control
+points at the opposite end. This is to ensure the Twine repeats smoothly.<BR CLEAR=BOTH>
+<BR></BLOCKQUOTE>
+
+<BLOCKQUOTE>
+<H3>
+<IMG SRC="smooth.gif" HEIGHT=124 WIDTH=225 ALIGN=RIGHT>Smooth Continuous</H3>
+</BLOCKQUOTE>
+
+<BLOCKQUOTE>The Twine repeats forever. The Twine continues along the same
+curve as that connecting the end control points and their neighbours.<BR CLEAR=BOTH>
+<BR></BLOCKQUOTE>
+
+<BLOCKQUOTE>
+<H3>
+<IMG SRC="linear.gif" HEIGHT=124 WIDTH=225 ALIGN=RIGHT>Linear Continuous</H3>
+</BLOCKQUOTE>
+
+<BLOCKQUOTE>The Twine repeats forever. The Twine continues with the same
+gradient as that at end control points.<BR CLEAR=BOTH>
+<BR></BLOCKQUOTE>
+
+<BLOCKQUOTE>
+<H3>
+<IMG SRC="constant.gif" HEIGHT=124 WIDTH=225 ALIGN=RIGHT>Constant Continuous</H3>
+</BLOCKQUOTE>
+
+<BLOCKQUOTE>The Twine repeats forever. The Twine continues with the same
+value as that at the end control points.<BR CLEAR=BOTH>
+<BR CLEAR=BOTH>
+<BR></BLOCKQUOTE>
+
+</BODY>
+</HTML>

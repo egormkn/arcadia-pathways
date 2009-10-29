@@ -1,0 +1,15 @@
+For fairness sake, a short historical overview of the authorship of the libraries in this directory:
+
+Alice Villeger wrote the current Makefile for the libavoid and twine libraries, to be used by the arcadia1.0 application
+That Makefile was largely inspired from libavoid and twines original respective Makefile instructions,
+but was adapted to allow for windows compilation, not just mac/unix compilation
+
+None of the two libraries themselves were written by Alice Villeger
+
+The actual libavoid source code ((C) 2004-2006 Michael Wybrow) has not been modified at all
+(it's an old alpha version from 2006, so there is most probably a newer one on the author's webpage)
+
+The twine source code ((C) 1997-1998 James Marsh) has been mildly modified by Alice Villeger:
+- downloaded the latest version of rb.h and rb.c ((C) 2000 James S. Plank) and used them as is
+- patched twine.c as the name of an rb function had changed
+- added missing copyright information to the twine code, after asking for James Marsh's permission to publish it as LGPL
