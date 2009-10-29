@@ -1,0 +1,38 @@
+Written by Alice Villeger on 2009/06/12
+<alice.villeger@manchester.ac.uk>
+
+How to compile and install
+--------------------------
+
+This is still very rudimentary. The binaries distributions normally run out of the box, but compiling from source requires installing additional libraries (listed in README) and maybe some additional path tweaking in the arcadia.pro file.
+If you have any questions, don't hesitate to ask me and I will try to help as much as I can.
+I would like to make the building process more straightforward when I have some time. If someone could volunteer a solution, e.g. some configure script for linux/unix, I'll be glad to add it to the official distribution.
+
+On Windows
+----------
+Normally the application is distributed as an executable zipped along with the appropriate dlls.
+Just unzip the directory anywhere, and run the executable from there.
+To build the executable from source, you must first install the libraries listed in the README file (the dlls can be found in the binary distribution, the static libraries need to be downloaded and compiled separately), then do the following:
+
+make install target=win32
+
+The executable will then be placed in the win32 directory.
+If compilation fails, you probably need to check the paths to the libraries, defined in the arcadia.pro file.
+Also don't forget to put the required dlls (either found in the binary distribution, or recompiled by yourself from source) in the win32 directory: without them, the application cannot work.
+
+On MacOSX
+---------
+Normally the application is distributed as a self-contained .app bundle which can be just dragged and dropped and run anywhere.
+To build package from source, you must first install the libraries listed in the README file, then do the following:
+
+make install
+
+The application should be in the macosx directory.
+If compilation fails, you probably need to check the paths to the libraries, defined in the arcadia.pro file.
+
+On *nix
+-------
+
+Not tested yet, and no binary distribution is provided at the moment, but the process for building from source should be similar?
+Install the required libraries (or check where they are on your system), make sure the arcadia.pro file links to the correct paths, then run the main Makefile (it first builds auxiliary libraries, then the main arcadia application)
+I foresee potential problems in not distinguishing properly between *nix and macosx in arcadia.pro and other Makefiles. I will try to fix that in a future release.
