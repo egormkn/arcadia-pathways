@@ -50,6 +50,7 @@ VertexStyle::VertexStyle(int r, int g, int bl, Shape s, float p, float b, float 
 float VertexStyle::getFullWidth(const std::string text)
 {
 	float w = this->showLabel? text.size()*7.5 : 0; // assumed to be font width	
+	if (this->getShape() == squareIOHori) w += 10;
 	return w + this->getFullOffset();
 }
 
@@ -61,12 +62,14 @@ float VertexStyle::getFullHeight(const std::string text)
 	}
 
 	float h = this->showLabel? 20 : 0; // assumed to be font height
+	if (this->getShape() == squareIOVert) h += 10;
 	return h + this->getFullOffset();
 }
 
 float VertexStyle::getBoundingWidth(const std::string text)
 {
 	float w = this->showLabel? text.size()*7.5 : 0; // assumed to be font width	
+	if (this->getShape() == squareIOHori) w += 10;
 	return w + this->getBoundingOffset();
 }
 
@@ -78,5 +81,6 @@ float VertexStyle::getBoundingHeight(const std::string text)
 	}
 
 	float h = this->showLabel? 20 : 0; // assumed to be font height
+	if (this->getShape() == squareIOVert) h += 10;
 	return h + this->getBoundingOffset();
 }

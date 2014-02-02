@@ -183,13 +183,15 @@ QRectF EdgeGraphics::boundingRect() const
 		p.addRect(this->getBoundingRect(this->targetDecoration, targetPart));
 */	
 
+	
+
 	return p.boundingRect();
 }
 
 QRectF EdgeGraphics::getBoundingRect(QPainterPath path, EdgePart type) const
 {
 	QRectF r = path.boundingRect();
-	int width = this->style->getPenWidth(); // [!] could differ depending on the type
+	int width = this->style->getPenWidth() + 10; // [!] could differ depending on the type (so we add 10 as security margin
 	r.setTop( r.top() - width/2 );
 	r.setLeft( r.left() - width/2 );
 	r.setBottom( r.bottom() + width/2 );
@@ -236,7 +238,15 @@ void EdgeGraphics::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 
 	painter->setRenderHint(QPainter::Antialiasing, true);
 
-	bool isSelected = (this->getVertexGraphics(true)->isSelected()) || (this->getVertexGraphics(false)->isSelected());
+	bool isSelected = false;
+	if (this->getVertexGraphics(true))
+	{
+		isSelected |= this->getVertexGraphics(true)->isSelected();
+	}
+	if (this->getVertexGraphics(false))
+	{
+		isSelected |= this->getVertexGraphics(false)->isSelected();
+	}
 
 //	this->setZValue(isSelected? 2: 0); // [!] ugly with decorations at the wrong place when selected
 	this->setZValue(0);
@@ -299,106 +309,160 @@ void EdgeGraphics::setStyle(EdgeStyle *s) {
 void EdgeGraphics::updateShapes(bool lineUpdate, bool sourceUpdate, bool targetUpdate)
 {
 	this->setPos(0,0);
+	
+	// slightly costly operation, try to do only when necessary
+	QGraphicsItem * sourceShape = NULL;
+	QGraphicsItem * targetShape = NULL;
 
 	if (lineUpdate)
 	{
+		sourceShape = this->getVertexGraphics(true);
+		targetShape = this->getVertexGraphics(false);
+		
 		QPainterPath path;
 
 		if (this->style->getIsCurvy() && (this->points.size() > 2) )
 		{  // spline evaluation	
-			path = getSplinePath(this->points);
+			path = getSplinePath(sourceShape, targetShape);
 		}
 		else if (this->points.size() != 0) // if zero points, empty path
-		{ // straight line(s)		
-			std::list<QPointF>::iterator pi = this->points.begin(); // 1st
-			QPointF src = *pi;
-			pi++; // 2nd
-			QPointF tar = *pi;
-			pi++; // 3rd
-			
-			if (this->style->getSourceDecoration() == noDeco) path.moveTo(src);
-			else // for reactant arrows of invertible reactions
-			{
-				// the first source
-				QPainterPath source = this->getVertexGraphics(true)->shape();
-				QPointF tPoint = this->getVertexGraphics(true)->scenePos();
-				QPointF pos = src;
-				
-				float d = sqrt((src.x()-tar.x())*(src.x()-tar.x()) + (src.y()-tar.y())*(src.y()-tar.y()));
-				float interval = (float) 1 / d; // to roughly computes the thing every pixel between source and target...
-				
-				float x, y;	
-				for (float f=0; f<=1; f+=interval)
-				{
-					x = f*tar.x() + (1-f)*src.x();
-					y = f*tar.y() + (1-f)*src.y();
-
-					QPointF p(x,y);
-					QPointF p1( p.x() - tPoint.x(),  p.y() - tPoint.y() );
-
-					QPainterPath shape;
-					QRectF r(0, 0, 5, 5);
-					r.moveCenter(p1);
-					shape.addEllipse(r);
-
-					if (!source.intersects(shape) && !source.contains(shape)) { pos = p; break; }
-				}
-				path.moveTo(pos);				
-			}
-
-			while (pi != this->points.end())
-			{
-				path.lineTo(tar);
-				src = tar;
-				tar = *pi;
-				pi++;
-			}
-
-			if (this->style->getTargetDecoration() == noDeco) path.lineTo(target);
-			else // for the trigger thingy
-			{
-				// the last target
-				QPainterPath target = this->getVertexGraphics(false)->shape();
-				QPointF tPoint = this->getVertexGraphics(false)->scenePos();
-				QPointF pos = src;
-				
-				float d = sqrt((src.x()-tar.x())*(src.x()-tar.x()) + (src.y()-tar.y())*(src.y()-tar.y()));
-				float interval = (float) 1 / d; // to roughly computes the thing every pixel between source and target...
-				
-				float x, y;	
-				for (float f=1; f>=0; f-=interval)
-				{
-					x = f*tar.x() + (1-f)*src.x();
-					y = f*tar.y() + (1-f)*src.y();
-
-					QPointF p(x,y);
-					QPointF p1( p.x() - tPoint.x(),  p.y() - tPoint.y() );
-
-					QPainterPath shape;
-					QRectF r(0, 0, 5, 5);
-					r.moveCenter(p1);
-					shape.addEllipse(r);
-
-					if (!target.intersects(shape) && !target.contains(shape)) { pos = p; break; }
-				}
-				path.lineTo(pos);
-			}
+		{ // straight line(s)
+			path = getStraightPath(sourceShape, targetShape);			
 		}		
 		this->lineShape = path;
 	}
 
 	if (sourceUpdate)
 	{
-		this->sourceDecoration = this->getSourceDecoration(this->points, this->getVertexGraphics(true));
+		if (!sourceShape) sourceShape = this->getVertexGraphics(true);
+		this->sourceDecoration = this->getSourceDecoration(sourceShape);
 	}
 
 	if (targetUpdate)
 	{
-		this->targetDecoration = this->getTargetDecoration(this->points, this->getVertexGraphics(false));
+		if (!targetShape) targetShape = this->getVertexGraphics(false);
+		this->targetDecoration = this->getTargetDecoration(targetShape);
 	}
 }
 
-QPainterPath EdgeGraphics::getSplinePath(std::list<QPointF> controlPoints) {
+QPainterPath EdgeGraphics::getStraightPath(QGraphicsItem * sourceShape, QGraphicsItem * targetShape)
+{
+	QPainterPath path;
+	
+	std::list<QPointF>::iterator pi = this->points.begin(); // 1st point
+	QPointF src = *pi;
+	pi++; // 2nd point
+	QPointF tar = *pi;
+	pi++; // 3rd point (we can have a polyline)
+	
+	// initializes the path
+	if (this->style->getSourceDecoration() == noDeco) path.moveTo(src);
+	else // for reactant arrows of invertible reactions
+		path.moveTo( this->getDecorationPos(src, tar, sourceShape, true) );
+
+	// go through each point in the polyline
+	while (pi != this->points.end())
+	{
+		path.lineTo(tar);
+		src = tar;
+		tar = *pi;
+		pi++;
+	}
+
+	if (this->style->getTargetDecoration() == noDeco) path.lineTo(tar);
+	else // for the trigger thingy
+		path.lineTo( this->getDecorationPos(src, tar, targetShape, false) );
+	
+	return path;
+}
+
+bool EdgeGraphics::isInShape(QPointF p, QGraphicsItem * endItem, EdgeDecoration deco, float * angle)
+{
+	bool value = true;
+	
+	QPainterPath endShape = endItem->shape();
+	QPointF endPoint( p.x() - endItem->scenePos().x(),  p.y() - endItem->scenePos().y() );
+
+	if ( deco == circle )
+	{
+		QPainterPath decoShape;
+		QRectF decoRect(0, 0, 10, 10);
+		decoRect.moveCenter(endPoint);
+		decoShape.addEllipse(decoRect);
+
+		if (!endShape.intersects(decoShape) && !endShape.contains(decoShape)) value = false;
+	}
+	else if (!endShape.contains(endPoint)) value = false;
+
+	if (angle)
+	{
+		if ( !endPoint.x() ) (*angle) = ( endPoint.y() > 0 )? -90: 90;
+		else (*angle) = (180/3.1416) * atan( endPoint.y() / endPoint.x() );
+		if ( endPoint.x() > 0 ) (*angle) += 180;
+	}
+
+	return value;
+}
+
+// computes the buffer to leave between the edge and its source if there is a decoration
+QPointF EdgeGraphics::getDecorationPos(QPointF src, QPointF tar, QGraphicsItem * endItem, bool isSource, float * angle)
+{
+	QPointF pos = src;
+	EdgeDecoration deco = isSource? this->style->getSourceDecoration() : this->style->getTargetDecoration();
+				
+	float d = sqrt((src.x()-tar.x())*(src.x()-tar.x()) + (src.y()-tar.y())*(src.y()-tar.y()));
+	float interval = (float) 1 / d;
+				
+	float x, y;	
+
+	for (float f=0; f<=1; f+=interval)
+	{
+		float g = isSource? f : 1-f;
+
+		x = g*tar.x() + (1-g)*src.x();
+		y = g*tar.y() + (1-g)*src.y();		
+
+		QPointF p(x,y);
+		
+		if (!isInShape( p, endItem, deco, angle))
+		{
+			p = this->addDecorationOffset(p, deco, isSource);
+			pos = p; break;
+		}
+	}
+
+	return pos;
+}
+
+// To make sure the arc of modifiers points at the decoration, not the reaction itself
+QPointF EdgeGraphics::addDecorationOffset(QPointF p, EdgeDecoration deco, bool isSource)
+{
+	// if it's not broken don't fix it
+	if ( (deco == noDeco) || (deco == circle) || (deco == triangleArrow) ) return p;
+
+	// determine the space taken by the decoration
+	int offset = 0;
+	if (deco == verticalline) offset = 5;
+	if (deco == emptyTriangle) offset = 10;
+	if (deco == diamond) offset = 10;
+	if (deco == crossedArrow) offset = 15;
+	
+	// determine the orientation of the arc to the reaction: looks at position of side port (= arc target) to real center of glyph
+	CloneContent * endContent = isSource? this->connector->getSource() : this->connector->getTarget();
+	float dx = p.x() - endContent->x();
+	float dy = p.y() - endContent->y();
+	if (dx*dx > dy*dy) // horizontal offset
+		if (dx > 0) p.setX(p.x() + offset);
+		else p.setX (p.x() - offset);
+	else // vertical offset
+		if (dy > 0) p.setY(p.y() + offset);
+		else p.setY (p.y() - offset);
+
+	return p;
+}
+
+QPainterPath EdgeGraphics::getSplinePath(QGraphicsItem * sourceShape, QGraphicsItem * targetShape)
+{	
 	QPainterPath spline;
 
 	// Creating the spline
@@ -410,365 +474,186 @@ QPainterPath EdgeGraphics::getSplinePath(std::list<QPointF> controlPoints) {
 
 	// Adding the control points
 	int i = 0;
-	for (std::list<QPointF>::iterator pi = controlPoints.begin(); pi != controlPoints.end(); ++pi) {
+	for (std::list<QPointF>::iterator pi = this->points.begin(); pi != this->points.end(); ++pi) {
 		TW_AddControl(xtwine, i, (*pi).x());
 		TW_AddControl(ytwine, i, (*pi).y());	
 		++i;
 	}
 
 	// Computing the spline
-	QPointF src = controlPoints.front();
-	QPointF tar = controlPoints.back();	
+	QPointF src = this->points.front();
+	QPointF tar = this->points.back();
 
 	float d = sqrt((src.x()-tar.x())*(src.x()-tar.x()) + (src.y()-tar.y())*(src.y()-tar.y()));
-	float interval = (float) (controlPoints.size() - 1) / d;
+	float interval = (float) (this->points.size() - 1) / d;
 
-	if (this->style->getTargetDecoration() == noDeco)
+	spline.moveTo(src);
+
+	EdgeDecoration deco = this->style->getTargetDecoration();
+
+	TW_VALUE x, y;	
+	for (float f = interval; f<= this->points.size() - 1; f += interval)
 	{
-		spline.moveTo(src);
+		TW_EvaluateTwine(&x, xtwine, f);
+		TW_EvaluateTwine(&y, ytwine, f);
 
-		TW_VALUE x, y;	
-		for (float f = interval; f<= controlPoints.size() - 1; f += interval)
-		{
-			TW_EvaluateTwine(&x, xtwine, f);
-			TW_EvaluateTwine(&y, ytwine, f);
-
-			spline.lineTo(QPointF(x,y));
-		}
-
-		spline.lineTo(tar);
+		QPointF p(x,y);
+		
+		if (deco != noDeco)
+			if ( isInShape( p, targetShape, this->style->getTargetDecoration()) ) break;
+		
+		spline.lineTo(p);
 	}
-
-	else // for the trigger thingy
-	{
-		QPainterPath target = this->getVertexGraphics(false)->shape();
-		QPointF tPoint = this->getVertexGraphics(false)->scenePos();
-
-		spline.moveTo(src);
-
-		TW_VALUE x, y;	
-		for (float f = interval; f<= controlPoints.size() - 1; f += interval)
-		{
-			TW_EvaluateTwine(&x, xtwine, f);
-			TW_EvaluateTwine(&y, ytwine, f);
-
-			QPointF p(x,y);
-			QPointF p1( p.x() - tPoint.x(),  p.y() - tPoint.y() );
-
-			QPainterPath shape;
-			QRectF r(0, 0, 5, 5);
-			r.moveCenter(p1);
-			shape.addEllipse(r);
-			if (target.intersects(shape) || target.contains(shape)) { break; }
-			
-			spline.lineTo(p);
-		}
-	}
-
+		
+	if (deco == noDeco) spline.lineTo(tar);
 	
 	return spline;	
 }
 
-QPainterPath EdgeGraphics::getSourceDecoration(std::list<QPointF> controlPoints, QGraphicsItem * mask)
+QPointF EdgeGraphics::getDecorationPosOnSpline(QGraphicsItem * endItem, bool isSource, float * angle)
+{
+	// Creating the spline
+	TW_TWINE xtwine;
+	TW_TWINE ytwine;
+
+	TW_InitialiseTwine(&xtwine, TW_TYPE_Limit);
+	TW_InitialiseTwine(&ytwine, TW_TYPE_Limit);
+
+	// Adding the control points
+	int i = 0;
+	for (std::list<QPointF>::iterator pi = this->points.begin(); pi != this->points.end(); ++pi)
+	{
+		TW_AddControl(xtwine, i, (*pi).x());
+		TW_AddControl(ytwine, i, (*pi).y());	
+		++i;
+	}
+
+	// Computing the spline intersection with the shape
+	QPointF src = this->points.front();
+	QPointF tar = this->points.back();	
+
+	QPointF pos = isSource? tar : src;
+
+	float d = sqrt((src.x()-tar.x())*(src.x()-tar.x()) + (src.y()-tar.y())*(src.y()-tar.y()));
+	float interval = (float) (this->points.size() - 1) / d;
+
+	EdgeDecoration deco = isSource? this->style->getSourceDecoration() : this->style->getTargetDecoration();
+
+	TW_VALUE x, y;	
+	for (float f = 0; f <= this->points.size() - 1; f += interval)
+	{
+		float g = isSource? f : this->points.size() - 1 - f;
+		TW_EvaluateTwine(&x, xtwine, g);
+		TW_EvaluateTwine(&y, ytwine, g);
+
+		QPointF p(x,y);
+	
+		if ( !isInShape( p, endItem, deco, angle) ) { pos = p; break; }
+	}
+	
+	return pos;
+}
+
+QPainterPath EdgeGraphics::getSourceDecoration(QGraphicsItem * sourceShape)
 {
 	QPainterPath deco;
 	EdgeDecoration decoStyle = this->style->getSourceDecoration();
-
 	if (decoStyle == noDeco) return deco;
+	
 	bool symetric = (decoStyle == circle);
 	
-	QPainterPath target = mask->shape();
-	QPointF tPoint = mask->scenePos();
-
 	QPointF pos;
 	float angle;
 
-	if (this->style->getIsCurvy() && (controlPoints.size() > 2))
-	{
-		// Creating the spline
-		TW_TWINE xtwine;
-		TW_TWINE ytwine;
-
-		TW_InitialiseTwine(&xtwine, TW_TYPE_Limit);
-		TW_InitialiseTwine(&ytwine, TW_TYPE_Limit);
-
-		// Adding the control points
-		int i = 0;
-		for (std::list<QPointF>::iterator pi = controlPoints.begin(); pi != controlPoints.end(); ++pi)
-		{
-			TW_AddControl(xtwine, i, (*pi).x());
-			TW_AddControl(ytwine, i, (*pi).y());	
-			++i;
-		}
-
-		// Computing the spline intersection with the shape
-		QPointF src = controlPoints.front();
-		QPointF tar = controlPoints.back();	
-
-		float d = sqrt((src.x()-tar.x())*(src.x()-tar.x()) + (src.y()-tar.y())*(src.y()-tar.y()));
-		float interval = (float) (controlPoints.size() - 1) / d;
-
-		TW_VALUE x, y;	
-		for (float f = 0; f <= controlPoints.size() - 1; f += interval)
-		{
-			TW_EvaluateTwine(&x, xtwine, f);
-			TW_EvaluateTwine(&y, ytwine, f);
-
-			QPointF p(x,y);
-			QPointF p1( p.x() - tPoint.x(),  p.y() - tPoint.y() );
-				
-			if (symetric)
-			{
-				QPainterPath shape;
-				QRectF r(0, 0, 10, 10);
-				r.moveCenter(p1);
-				shape.addEllipse(r);
-				if (!target.intersects(shape) && !target.contains(shape)) {	pos = p; break;	}
-			}				
-			else
-			{
-				if (!target.contains(p1))
-				{
-					pos = p;
-					if (!p1.x()) angle = (p1.y() > 0)? -90: 90;
-					else angle = (180/3.1416) * atan(p1.y()/p1.x());
-					if (p1.x() > 0) angle += 180;
-					break;
-				}
-			}
-		}			
-	}
-	else
-	{
-		// Computing the line intersection with the shape
-		QPointF src = controlPoints.front();
-		QPointF tar = controlPoints.back();	
-
-		float d = sqrt((src.x()-tar.x())*(src.x()-tar.x()) + (src.y()-tar.y())*(src.y()-tar.y()));
-		float interval = (float) 1 / d;
-
-		float x, y;	
-		for (float f=0; f<=1; f+=interval)
-		{
-			x = f*tar.x() + (1-f)*src.x();
-			y = f*tar.y() + (1-f)*src.y();
-
-			QPointF p(x,y);
-			QPointF p1( p.x() - tPoint.x(),  p.y() - tPoint.y() );
-
-			if (symetric)
-			{
-				QPainterPath shape;
-				QRectF r(0, 0, 10, 10);
-				r.moveCenter(p1);
-				shape.addEllipse(r);
-				
-				if (!target.intersects(shape) && !target.contains(shape)) { pos = p; break; }
-			}
-			else
-			{
-				if (!target.contains(p1))
-				{
-					pos = p;
-					if (!p1.x()) angle = (p1.y() > 0)? -90: 90;
-					else angle = (180/3.1416) * atan(p1.y()/p1.x());
-					if (p1.x() > 0) angle += 180;
-					break;
-				}
-			}
-		}			
-	}
+	if (this->style->getIsCurvy() && (this->points.size() > 2))
+		pos = this->getDecorationPosOnSpline(sourceShape, true, &angle);
+	else // Computing the line intersection with the shape
+		pos = this->getDecorationPos(this->points.front(), this->points.back(), sourceShape, true, &angle);
 	
-	if (symetric)
+	return this->getDecorationPath(decoStyle, pos, angle);
+}
+
+QPainterPath EdgeGraphics::getTargetDecoration(QGraphicsItem * targetShape)
+{
+	QPainterPath deco; // return value
+	EdgeDecoration decoStyle = this->style->getTargetDecoration();
+	if (decoStyle == noDeco) return deco;
+
+	QPointF pos; // where to draw the decoration
+	float angle; // at which angle
+
+	// if dealing with curve
+	if (this->style->getIsCurvy() && (this->points.size() > 2))
+		pos = this->getDecorationPosOnSpline(targetShape, false, &angle);
+	else // dealing with straight line
+		pos = this->getDecorationPos(this->points.front(), this->points.back(), targetShape, false, &angle);
+	
+	return this->getDecorationPath(decoStyle, pos, angle);
+}
+	
+QPainterPath EdgeGraphics::getDecorationPath(EdgeDecoration decoStyle, QPointF pos, float angle)
+{
+	QPainterPath deco;
+
+	if (decoStyle == circle)
 	{
 		QRectF r(0, 0, 10, 10);
 		r.moveCenter(pos);
 		deco.addEllipse(r);
+		return deco;
 	}
-	else
+
+	QMatrix matrix;
+	matrix.translate(pos.x(), pos.y());
+	matrix.rotate(angle);
+
+	std::list<QPointF> pList;
+
+	// only the filling and extra deco differs
+	if (decoStyle == triangleArrow)
 	{
-		QMatrix matrix;
-		matrix.translate(pos.x(), pos.y());
-		matrix.rotate(angle);
-
-		std::list<QPointF> pList;
-		if (decoStyle == triangleArrow)
-		{
-			pList.push_back(matrix.map(QPointF(-10, -5)));
-			pList.push_back(matrix.map(QPointF(-10, 5)));
-			pList.push_back(matrix.map(QPointF(0, 0)));
-		}
-		else
-		{
-			pList.push_back(matrix.map(QPointF(-5, 5)));
-			pList.push_back(matrix.map(QPointF(-10, 0)));
-			pList.push_back(matrix.map(QPointF(-5, -5)));
-			pList.push_back(matrix.map(QPointF(0, 0)));
-		}
-		deco.moveTo(pList.back());
-		for (std::list<QPointF>::iterator it = pList.begin(); it != pList.end(); ++it) deco.lineTo(*it);
+		pList.push_back(matrix.map(QPointF(-10, -5)));
+		pList.push_back(matrix.map(QPointF(-10, 5)));
+		pList.push_back(matrix.map(QPointF(0, 0)));
 	}
 
-	return deco;
-}
+	if (decoStyle == emptyTriangle)
+	{
+		pList.push_back(matrix.map(QPointF(0, -5)));
+		pList.push_back(matrix.map(QPointF(0, 5)));
+		pList.push_back(matrix.map(QPointF(10, 0)));
+	}
 
+	if (decoStyle == crossedArrow)
+	{
+		pList.push_back(matrix.map(QPointF(5, -5)));
+		pList.push_back(matrix.map(QPointF(5, 5)));
+		pList.push_back(matrix.map(QPointF(15, 0)));	
+	}
 
-QPainterPath EdgeGraphics::getTargetDecoration(std::list<QPointF> controlPoints, QGraphicsItem * mask)
-{
-	QPainterPath deco;
-	EdgeDecoration decoStyle = this->style->getTargetDecoration();
+	if (decoStyle == diamond)
+	{
+		pList.push_back(matrix.map(QPointF(5, 5)));
+		pList.push_back(matrix.map(QPointF(0, 0)));
+		pList.push_back(matrix.map(QPointF(5, -5)));
+		pList.push_back(matrix.map(QPointF(10, 0)));
+	}
 
-	if (decoStyle == noDeco) return deco;
-	bool symetric = (decoStyle == circle);
+	if (decoStyle == verticalline)
+	{
+		pList.push_back(matrix.map(QPointF(0, -7)));
+		pList.push_back(matrix.map(QPointF(0, 7)));		
+	}
+
+	deco.moveTo(pList.back());
+	for (std::list<QPointF>::iterator it = pList.begin(); it != pList.end(); ++it) deco.lineTo(*it);
 	
-	QPainterPath target = mask->shape();
-	QPointF tPoint = mask->scenePos();
-
-	QPointF pos;
-	float angle;
-
-	if (this->style->getIsCurvy() && (controlPoints.size() > 2))
+	if (decoStyle == crossedArrow)
 	{
-		// Creating the spline
-		TW_TWINE xtwine;
-		TW_TWINE ytwine;
-
-		TW_InitialiseTwine(&xtwine, TW_TYPE_Limit);
-		TW_InitialiseTwine(&ytwine, TW_TYPE_Limit);
-
-		// Adding the control points
-		int i = 0;
-		for (std::list<QPointF>::iterator pi = controlPoints.begin(); pi != controlPoints.end(); ++pi)
-		{
-			TW_AddControl(xtwine, i, (*pi).x());
-			TW_AddControl(ytwine, i, (*pi).y());	
-			++i;
-		}
-
-		// Computing the spline intersection with the shape
-		QPointF src = controlPoints.front();
-		QPointF tar = controlPoints.back();	
-
-		float d = sqrt((src.x()-tar.x())*(src.x()-tar.x()) + (src.y()-tar.y())*(src.y()-tar.y()));
-		float interval = (float) (controlPoints.size() - 1) / d;
-
-		TW_VALUE x, y;	
-		for (float f = controlPoints.size() - 1; f >= 0; f -= interval)
-		{
-			TW_EvaluateTwine(&x, xtwine, f);
-			TW_EvaluateTwine(&y, ytwine, f);
-
-			QPointF p(x,y);
-			QPointF p1( p.x() - tPoint.x(),  p.y() - tPoint.y() );
-				
-			if (symetric)
-			{
-				QPainterPath shape;
-				QRectF r(0, 0, 10, 10);
-				r.moveCenter(p1);
-				shape.addEllipse(r);
-				if (!target.intersects(shape) && !target.contains(shape)) {	pos = p; break;	}
-			}				
-			else
-			{
-				if (!target.contains(p1))
-				{
-					pos = p;
-					if (!p1.x()) angle = (p1.y() > 0)? -90: 90;
-					else angle = (180/3.1416) * atan(p1.y()/p1.x());
-					if (p1.x() > 0) angle += 180;
-					break;
-				}
-			}
-		}			
-	}
-	else
-	{
-		// Computing the line intersection with the shape
-		QPointF src = controlPoints.front();
-		QPointF tar = controlPoints.back();	
-
-		float d = sqrt((src.x()-tar.x())*(src.x()-tar.x()) + (src.y()-tar.y())*(src.y()-tar.y()));
-		float interval = (float) 1 / d;
-
-		float x, y;	
-		for (float f=1; f>=0; f-=interval)
-		{
-			x = f*tar.x() + (1-f)*src.x();
-			y = f*tar.y() + (1-f)*src.y();
-
-			QPointF p(x,y);
-			QPointF p1( p.x() - tPoint.x(),  p.y() - tPoint.y() );
-
-			if (symetric)
-			{
-				QPainterPath shape;
-				QRectF r(0, 0, 10, 10);
-				r.moveCenter(p1);
-				shape.addEllipse(r);
-				
-				if (!target.intersects(shape) && !target.contains(shape)) { pos = p; break; }
-			}
-			else
-			{
-				if (!target.contains(p1))
-				{
-					pos = p;
-					if (!p1.x()) angle = (p1.y() > 0)? -90: 90;
-					else angle = (180/3.1416) * atan(p1.y()/p1.x());
-					if (p1.x() > 0) angle += 180;
-					break;
-				}
-			}
-		}			
+		deco.moveTo(matrix.map(QPointF(0, -7)));
+		deco.lineTo(matrix.map(QPointF(0, 7)));	
 	}
 	
-	if (symetric)
-	{
-		if (decoStyle == circle)
-		{
-			QRectF r(0, 0, 10, 10);
-			r.moveCenter(pos);
-			deco.addEllipse(r);
-		}	
-	}
-	else
-	{
-		QMatrix matrix;
-		matrix.translate(pos.x(), pos.y());
-		matrix.rotate(angle);
-
-		std::list<QPointF> pList;
-
-		if (decoStyle == triangleArrow || decoStyle == emptyTriangle || decoStyle == crossedArrow) // only the filling and extra deco differs
-		{
-			pList.push_back(matrix.map(QPointF(-10, -5)));
-			pList.push_back(matrix.map(QPointF(-10, 5)));
-			pList.push_back(matrix.map(QPointF(0, 0)));
-		}
-		if (decoStyle == diamond)
-		{
-			pList.push_back(matrix.map(QPointF(5, 5)));
-			pList.push_back(matrix.map(QPointF(10, 0)));
-			pList.push_back(matrix.map(QPointF(5, -5)));
-			pList.push_back(matrix.map(QPointF(0, 0)));
-		}
-		if (decoStyle == verticalline)
-		{
-			pList.push_back(matrix.map(QPointF(-2, -7)));
-			pList.push_back(matrix.map(QPointF(-2, 7)));		
-		}
-
-		deco.moveTo(pList.back());
-		for (std::list<QPointF>::iterator it = pList.begin(); it != pList.end(); ++it) deco.lineTo(*it);
-
-		if (decoStyle == crossedArrow)
-		{
-			deco.moveTo(matrix.map(QPointF(-13, -7)));
-			deco.lineTo(matrix.map(QPointF(-13, 7)));
-		}
-	}
-
 	return deco;
 }
 

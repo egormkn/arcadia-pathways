@@ -50,12 +50,12 @@ class Species;
 class SpeciesVertexProperty : public PathwayVertexProperty
 {
 public:
-	SpeciesVertexProperty(Species * s);
+	SpeciesVertexProperty(Species * s, PathwayGraphModel * m);
 	std::string getInfo();
 	std::string getCompartment();
 
 	std::string getLabel();
-	std::string getTypeLabel();
+	std::string getTypeLabel(bool highest=false);
 	std::string getSuperTypeLabel();
 
 	std::map<std::string, std::string> getInfoMap();

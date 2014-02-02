@@ -32,10 +32,12 @@
 
 #include "pathwayvertexproperty.h"
 #include "ontologycontainer.h"
+// #include "webservicehandler.h"
 
 #include <sstream>
 
-PathwayVertexProperty::PathwayVertexProperty(SBase * b) : base(b) { }
+PathwayVertexProperty::PathwayVertexProperty(SBase * b, PathwayGraphModel * m)
+	: base(b), model(m) { }
 
 std::string PathwayVertexProperty::getLabel()
 {
@@ -73,9 +75,10 @@ int PathwayVertexProperty::inherits(int sboTerm)
 
 std::list< std::string > PathwayVertexProperty::getIsURIs()
 {
-	return this->getBioURIs(BQB_IS);
+	return this->getBioURIs(BQB_IS, true);
 }
 
+// Parsing all MIRIAM annotations
 std::list< std::pair< BiolQualifierType_t, std::string > > PathwayVertexProperty::getBioURIs()
 {
 	std::list< std::pair< BiolQualifierType_t, std::string > > bList;
@@ -117,57 +120,77 @@ std::list< std::pair< BiolQualifierType_t, std::string > > PathwayVertexProperty
 	return bList;
 }
 
-std::list< std::string > PathwayVertexProperty::getBioURIs(BiolQualifierType_t bt)
+// Parsing specific MIRIAM annotations
+std::list< std::string > PathwayVertexProperty::getBioURIs(BiolQualifierType_t bt, bool includeURLs)
 {
 	std::list< std::string > bList;
 
 	XMLNode* annotation = this->base->getAnnotation();
 	if (!annotation) return bList;
 	
-	std::map<std::string, XMLNode> metaidToNode;
+	/* // no necessary at all, as I'm only dealing with resources, which can't be metaids
 	// parsing the annotation for metaids
+	std::map<std::string, XMLNode> metaidToNode;
 	for (int i = 0; i < annotation->getNumChildren(); ++i)
 	{
 		XMLNode c = annotation->getChild(i);
 		XMLAttributes att = c.getAttributes();
 		std::string metaid = att.getValue("metaid");
-		if (metaid == "") continue;
-		metaidToNode["#" + metaid] = c;
+		if (metaid == "") continue; // no metaid attribute in the annotation node
+		metaidToNode["#" + metaid] = c; // storing the metaid to node information
 	}
+	*/
 
-	List *listCVTerms = new List();
-	RDFAnnotationParser::parseRDFAnnotation (annotation, listCVTerms);
+	// Parsing the RDF data as controlled vocabulary terms
+	List listCVTerms;
+	RDFAnnotationParser::parseRDFAnnotation (annotation, &listCVTerms);
 	
-	unsigned int listSize = listCVTerms->getSize();
+	// For each controlled vocabulary term
+	unsigned int listSize = listCVTerms.getSize();
 	for (unsigned int i=0; i<listSize; ++i)
 	{
-		CVTerm *t = (CVTerm*) listCVTerms->get(i);
+		CVTerm *t = (CVTerm*) listCVTerms.get(i);
 		
+		// We are only interested in biological qualifiers
 		QualifierType_t qType = t->getQualifierType();
 		if (qType != BIOLOGICAL_QUALIFIER) continue;
 		
+		// We are only interested in the requested bio qualifier
 		BiolQualifierType_t bType = t->getBiologicalQualifierType();
 		if ( bType != bt ) continue;
 
+		// We need some attributes
 		XMLAttributes *attributes = t->getResources();
 		if (!attributes) continue;
 
+		// Among these attribute
 		unsigned int nAtt = attributes->getLength();				
 		for (unsigned int j=0; j<nAtt; ++j)
 		{
+			// we are only interested in resources
 			if (attributes->getName(j) != "rdf:resource") continue;
 
+			// We look at its value
 			std::string value = attributes->getValue(j);
+				
+			bList.push_back(value);
 	
+			/* // don't know where that bullshit comes from???
+			// Maybe some old file type, e.g. jamboree?
+			// but inconsistent with recommendations for annotations in SBML2...
+
+			// Resources that don't start with a # are directly returned
 			if (value[0] != '#') { bList.push_back(value); continue; }
 
 			// metaid, should be in the same annotation bag, parsed above
-			if (metaidToNode.find(value) == metaidToNode.end()) { bList.push_back(value); continue; }
+			if (metaidToNode.find(value) == metaidToNode.end()) { bList.push_back(value); continue; } // could not find
 
 			XMLNode c = metaidToNode[value];
+			
 			if ((c.getName() != "inchi") || (c.getPrefix() != "in") || (c.getURI() != "http://biomodels.net/inchi"))
 				{ bList.push_back(value); continue; }
 		
+			// special case: inchi
 			if (c.getNumChildren() != 1) { bList.push_back(value); continue; }
 			
 			XMLNode text = c.getChild(0);
@@ -175,13 +198,29 @@ std::list< std::string > PathwayVertexProperty::getBioURIs(BiolQualifierType_t b
 
 			value = text.getCharacters();	
 			bList.push_back(value);
+			*/
 		}
 	}
-	
-	delete listCVTerms;
-	
+			
 	return bList;
 }
+
+// web service bit, doesn't quite fit yet (asynch)
+/*
+			// Query MIRIAM Web service to get URL from URI (handler created on the fly)
+			MiriamWebServiceHandler * ws = new MiriamWebServiceHandler()
+			this->activeHandlers.push_back(ws);
+			ws->getLocations(value);
+			// Add URLs to returned value
+*/
+/*	
+	~PathwayVertexProperty() // gets rid of any remaining handler
+	{
+		for (std::list<MiriamWebServiceHandler *>::iterator it = this->activeHandlers.begin();
+			it != this->activeHandlers.end(); ++it) delete *it;
+	}
+	std::list<MiriamWebServiceHandler *> activeHandlers;
+*/
 
 std::map<std::string, std::string> PathwayVertexProperty::getInfoMap()
 {

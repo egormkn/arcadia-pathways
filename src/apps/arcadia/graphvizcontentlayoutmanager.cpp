@@ -49,11 +49,13 @@
 extern gvplugin_library_t *gvplugin_dot_layout_LTX_library;
 extern gvplugin_library_t *gvplugin_neato_layout_LTX_library;
 
+// no const in later graphviz versions
 const lt_symlist_t lt_preloaded_symbols[] = {
 { "gvplugin_dot_layout_LTX_library", (void*)(&gvplugin_dot_layout_LTX_library) },
 { "gvplugin_neato_layout_LTX_library", (void*)(&gvplugin_neato_layout_LTX_library) },
 { 0, 0 }
 };
+
 #endif
 
 #endif // end of hack [!]
@@ -64,6 +66,7 @@ const lt_symlist_t lt_preloaded_symbols[] = {
 #include <sstream>
 #include <list>
 #include <stack>
+#include <stdexcept>
 
 // local
 #include "containercontent.h"
@@ -74,10 +77,7 @@ const lt_symlist_t lt_preloaded_symbols[] = {
 /**************************************************************************************************************************
 * Constructor: Initialises the graph to NULL, and the graphContext to a new one. Also sets up the method (dot by default) *
 **************************************************************************************************************************/
-GraphvizContentLayoutManager::GraphvizContentLayoutManager(std::string m) : method (m), graph(NULL)
-{
-	this->graphContext = gvContext();
-}
+GraphvizContentLayoutManager::GraphvizContentLayoutManager(std::string m) : method (m) {}
 
 /*************
 * Destructor *
@@ -85,11 +85,7 @@ GraphvizContentLayoutManager::GraphvizContentLayoutManager(std::string m) : meth
 * closes the graph (if any)
 * and frees the context
 ***************************/
-GraphvizContentLayoutManager::~GraphvizContentLayoutManager()
-{
-	if (this->graph) agclose(this->graph);
-	gvFreeContext(this->graphContext);
-}
+GraphvizContentLayoutManager::~GraphvizContentLayoutManager() {}
 
 /*********
 * layout *
@@ -109,30 +105,15 @@ GraphvizContentLayoutManager::~GraphvizContentLayoutManager()
 *******************************************************/
 void GraphvizContentLayoutManager::layout(ContainerContent * container)
 {
-/*
-Agraph_t* G;
-GVC_t* gvc;
-gvc = gvContext();
-// create graph
-gvLayout (gvc, G, "dot");
-// Draw graph
-gvFreeLayout(gvc, g);
-agclose (G);
-gvFreeContext(gvc);
-*/
 
 	// [!] hack! Let's totally forget about Triangle layout: it gets dealt with in its parent container
 	if (this->strategy == Triangle) return;
 	// [!] end of hack!
+
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
 		
-	////////////////////////////////////////////////////////////////////////////////////////////////
-
-	// reset graphviz objects
-	this->contentToGraphVizNode.clear();
-	if (this->graph) agclose(this->graph);
-
-	////////////////////////////////////////////////////////////////////////////////////////////////
-
 	// security for unmanageable graphs : uses a simpler layout method instead
 	if (container->getChildren().size() > 280)
 	{
@@ -143,10 +124,15 @@ gvFreeContext(gvc);
 		return;
 	}
 
+
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// beginning of the normal process
-	this->graph = agopen("g", AGDIGRAPH);
+	// init graphviz objects
+    GVC_t * graphContext = gvContext();
+    Agraph_t * graph = agopen("g", AGDIGRAPH);
+
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -158,19 +144,28 @@ gvFreeContext(gvc);
 
 	// We turn the children of the main container into graphviz nodes of similar-ish(?) dimensions
 	int nodeId = 0;
+	std::map <Content*, Agnode_t *> contentToGraphVizNode;
 	for (std::list<Content*>::iterator it= cList.begin(); it != cList.end(); ++it)
 	{
 		Content * c = (*it);
 				
 		std::ostringstream nodeName; nodeName << nodeId++;
 		Agnode_t * gvNode = agnode(graph, (char*)nodeName.str().c_str());
-		this->contentToGraphVizNode[c] = gvNode;
+		contentToGraphVizNode[c] = gvNode;
 
 		std::ostringstream w;	w <<  c->width(true)/50; std::ostringstream h;	h <<  c->height(true)/50;
 		if (this->rotation)	{ agsafeset(gvNode, "width", (char*)h.str().c_str(), "");	agsafeset(gvNode, "height", (char*)w.str().c_str(), ""); }
 		else				{ agsafeset(gvNode, "width", (char*)w.str().c_str(), "");	agsafeset(gvNode, "height", (char*)h.str().c_str(), ""); }
 	}
-	if (nodeId == 0) return; // if there is none, no need to layout any further...
+	if (nodeId == 0)
+	{
+		// destroy graphviz objects first
+		agclose( graph );
+		gvFreeContext( graphContext );
+		
+		return; // if there is none, no need to layout any further...
+	}
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -185,38 +180,40 @@ gvFreeContext(gvc);
 		Content * source = (*it)->getSourceContent(container);
 		Content * target = (*it)->getTargetContent(container);
 	
-		if (this->contentToGraphVizNode.find(source) == this->contentToGraphVizNode.end()) continue;
-		if (this->contentToGraphVizNode.find(target) == this->contentToGraphVizNode.end()) continue;
+		if (contentToGraphVizNode.find(source) == contentToGraphVizNode.end()) continue;
+		if (contentToGraphVizNode.find(target) == contentToGraphVizNode.end()) continue;
 
 		if ( (!inverseList.empty()) && (std::find(inverseList.begin(), inverseList.end(), *it) != inverseList.end() ) )
 		{
-			agedge(this->graph, this->contentToGraphVizNode[target], this->contentToGraphVizNode[source]);		
+			agedge(graph, contentToGraphVizNode[target], contentToGraphVizNode[source]);		
 		}
 		else
 		{
-			agedge(this->graph, this->contentToGraphVizNode[source], this->contentToGraphVizNode[target]);
+			agedge(graph, contentToGraphVizNode[source], contentToGraphVizNode[target]);
 		}
 	}
 
-
 	// [!] hack! For triangle containers
-	this->initTriangleContainerEdges(tList, container);
+	this->initTriangleContainerEdges(tList, container, graph, contentToGraphVizNode);
 	// [!] hack!
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// layout						
-	gvLayout(this->graphContext, this->graph, (char*)this->method.c_str());
-	
+	gvLayout(graphContext, graph, (char*)this->method.c_str());
+
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	// setting the local zoom
 	float zoom = (this->method == "twopi")? 1.25: 0.75;
 
 	// getting the bounding box of the graph
-	box bb = GD_bb(this->graph); // boxf in latest version
+	box bb = GD_bb(graph); // boxf in latest version
+//	boxf bb = GD_bb(graph);
 	float right = bb.UR.x;	float top    = bb.UR.y;
 	float left  = bb.LL.x;	float bottom = bb.LL.y;
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -231,8 +228,9 @@ gvFreeContext(gvc);
 		// we get it's current coordinates in our layout
 		x0 = core->x(); y0 = core->y();
 		// we get the new coordinates in graphviz layout
-		Agnode_t * coreNode = this->contentToGraphVizNode[core];
+		Agnode_t * coreNode = contentToGraphVizNode[core];
 		point p0 = ND_coord_i(coreNode); // ND_coord and pointf in latest version
+//		pointf p0 = ND_coord(coreNode);
 		// we translate the graphviz coordinates in our coordinates system
 		X0 = p0.x*zoom; Y0 = (top - p0.y)*zoom;
 	}
@@ -248,9 +246,10 @@ gvFreeContext(gvc);
 	{
 		Content * c = (*it);
 		// graphviz coordinates
-		Agnode_t * gvNode = this->contentToGraphVizNode[c];
+		Agnode_t * gvNode = contentToGraphVizNode[c];
 		point p = ND_coord_i(gvNode); // ND_coord and pointf in latest version
-	
+//		pointf p = ND_coord(gvNode);
+		
 		// translated coordinates so that the core of the main container doesn't move
 		float X = p.x*zoom - X0;
 		float Y = (top - p.y)*zoom - Y0;
@@ -288,6 +287,11 @@ gvFreeContext(gvc);
 		else				c->setPosition((x0 + X + dx) * xCompactFactor, (y0 + Y + dy) * yCompactFactor);		
 	}
 
+	// destroy graphviz objects first
+	gvFreeLayout(graphContext, graph);
+	agclose( graph );
+	gvFreeContext( graphContext );
+
 	// [!] fixing the position of compartments
 	for (std::list<Content*>::iterator it = cList.begin(); it != cList.end(); ++it)
 	{
@@ -300,13 +304,44 @@ gvFreeContext(gvc);
 		if (eList.size() != 1) continue; // can't deal with compartements with more than one core...
 		Connector * e = eList.front();
 		Content * reaction = e->getSourceContent(container);
-		if (reaction == c) reaction = e->getTargetContent(container);
+		bool coreIsTarget = true;
+
+		if (reaction == c)
+		{
+			reaction = e->getTargetContent(container);
+			coreIsTarget = false;
+		}
+
+		if (!reaction) std::cout << "WTF? " << comp->getLabel() << std::endl;
+
 		float xr = reaction->x();
 		float yr = reaction->y();
+
 		float xc = comp->x();
 		float yc = comp->y();
-		float x = comp->getCore()->x();
-		float y = comp->getCore()->y();
+
+		Content * core = comp->getCore();
+
+		if (!core)
+		{
+			std::cout << "Hah!!! Compartment has no core! " << ( (ContainerContent *) (c) )->getLabel() << std::endl;
+			if (coreIsTarget) core = e->getTargetContent(comp);
+			else core = e->getSourceContent(comp);
+		}
+		else
+		{
+			if (coreIsTarget)
+			{
+				if (core != e->getTargetContent(comp)) std::cout << "Not the right target!!!!!!!!!!!!!!!!!" << std::endl;
+			}
+			else
+			{
+				if (core != e->getSourceContent(comp))	std::cout << "Not the right source!!!!!!!!!!!!!!!!!" << std::endl;		
+			}
+		}
+
+		float x = core->x();
+		float y = core->y();
 
 		// aligns the core to where the centre currently is, relatively to the reaction
 		if ((xr == xc) && (yr != yc))
@@ -316,13 +351,12 @@ gvFreeContext(gvc);
 		else if ((yr == yc) && (xr != xc))
 		{
 			comp->setPosition(xc, 2 * yc - y);		
-		}
+		}		
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	this->layoutTriangleContainers(tList);
-
 }
 
 // in container and connectors, out inverselist and crossroad
@@ -408,7 +442,8 @@ std::list<ContainerContent*> GraphvizContentLayoutManager::initTriangleContainer
 	return tList;
 }
 
-void GraphvizContentLayoutManager::initTriangleContainerEdges(std::list<ContainerContent*> tList, ContainerContent * container)
+void GraphvizContentLayoutManager::initTriangleContainerEdges(std::list<ContainerContent*> tList, ContainerContent * container,
+	Agraph_t * graph, std::map <Content*, Agnode_t *> &contentToGraphVizNode)
 {
 	// Finds all the outter connectors of all the Triangle containers
 	std::list<Connector*> oCon;
@@ -424,20 +459,20 @@ void GraphvizContentLayoutManager::initTriangleContainerEdges(std::list<Containe
 	for (std::list<Connector*>::iterator it = oCon.begin(); it != oCon.end(); ++it)
 	{
 		Content * source = (*it)->getSourceContent(container);
-		if (this->contentToGraphVizNode.find(source) == this->contentToGraphVizNode.end())
+		if (contentToGraphVizNode.find(source) == contentToGraphVizNode.end())
 		{
 			source = (*it)->getSource();			
-			if (this->contentToGraphVizNode.find(source) == this->contentToGraphVizNode.end()) continue;
+			if (contentToGraphVizNode.find(source) == contentToGraphVizNode.end()) continue;
 		}
 
 		Content * target = (*it)->getTargetContent(container);
-		if (this->contentToGraphVizNode.find(target) == this->contentToGraphVizNode.end())
+		if (contentToGraphVizNode.find(target) == contentToGraphVizNode.end())
 		{
 			target = (*it)->getTarget();
-			if (this->contentToGraphVizNode.find(target) == this->contentToGraphVizNode.end()) continue;
+			if (contentToGraphVizNode.find(target) == contentToGraphVizNode.end()) continue;
 		}
 
-		agedge(this->graph, this->contentToGraphVizNode[source], this->contentToGraphVizNode[target]);
+		agedge(graph, contentToGraphVizNode[source], contentToGraphVizNode[target]);
 	}
 	// this means graphviz will lay out a graph that only has the non-core nodes of the triangle
 	// and the container triangle itself is pretty much ignored (and so is its core)
@@ -445,10 +480,13 @@ void GraphvizContentLayoutManager::initTriangleContainerEdges(std::list<Containe
 
 void GraphvizContentLayoutManager::layoutTriangleContainers(std::list<ContainerContent*> tList)
 {
-	// [!] new hack!	
+	// [!] new hack!
 	// new condition on triangles is that they have either a common child or a common ancestor
 	// We want to align the non core nodes to their respective non common ancestors or children
 	// (and then place the core node in the middle in between)
+
+//	std::cout << "ga" << std::endl;
+
 	for (std::list<ContainerContent*>::iterator it= tList.begin(); it != tList.end(); ++it)
 	{
 		// first, we find r1 and r2
@@ -461,10 +499,17 @@ void GraphvizContentLayoutManager::layoutTriangleContainers(std::list<ContainerC
 			if ((*it)->getCore() == (*ct)) continue;
 			if (!r1) r1 = (CloneContent*)(*ct);
 			else if (!r2) { r2 = (CloneContent*)(*ct); OK = true; } // just right
-			else OK = false; // too many
+			else { OK = false; } // too many 
 		}
-		if (!OK) { std::cout << "Not OK" << std::endl; continue; } // something wrong...
-		
+		if (!OK)
+		{
+			std::cout << "Not OK" << std::endl;
+			if (r1 && r2) std::cout << "Too many" << std::endl;
+			std::cout << ccList.size() << std::endl;
+			throw std::exception();
+			continue;
+		} // something wrong...
+
 		// finding the common ancestor or child
 		int direction = 0; // 1 = child, -1 = ancestor;		
 		std::list<Connector*> edges1 = r1->getOutterConnectors();
@@ -526,9 +571,10 @@ void GraphvizContentLayoutManager::layoutTriangleContainers(std::list<ContainerC
 		if (n2) r2->setPosition(x2/n2, r2->y());
 		// and we position both core's neighbours at the average x coordinate for these nodes
 	}
-
 	// [!] new hack!	
-	
+
+//	std::cout << "bu" << std::endl;
+
 	// [!] hack!	
 	// We still need to place the cores of the triangle containers
 	// => at the barycentre of all the other nodes in the container
@@ -539,16 +585,20 @@ void GraphvizContentLayoutManager::layoutTriangleContainers(std::list<ContainerC
 		float x = 0;
 		float y = 0;
 		int n = 0;
-		for (std::list<Content*>::iterator ct= ccList.begin(); ct != ccList.end(); ++ct)
+			
+		for (std::list<Content*>::iterator ct = ccList.begin(); ct != ccList.end(); ++ct)
 		{
 			if ((*it)->getCore() == (*ct)) continue;
 			++n;
 			x += (*ct)->x();
 			y += (*ct)->y();
 		}
+		
 		if (n) (*it)->getCore()->setPosition(x/n, y/n);
 	}
 	//*/
+
+//	std::cout << "zo" << std::endl;
 
 	// Smarter alternative: roughly equal distance to the border of each other node?
 	// => Barycentre of the nearest corner to G of the bounding box of each node
@@ -580,4 +630,6 @@ void GraphvizContentLayoutManager::layoutTriangleContainers(std::list<ContainerC
 		if (n) (*it)->getCore()->setPosition(x/n, y/n);
 	}
 	// [!] hack!	
+
+//	std::cout << "me" << std::endl;
 }

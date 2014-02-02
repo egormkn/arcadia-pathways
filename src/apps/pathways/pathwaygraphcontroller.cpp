@@ -32,6 +32,8 @@
 
 #include "pathwaygraphcontroller.h"
 
+#include "ontologycontainer.h"
+
 #include "sbmlgraphloader.h"
 
 #include <arcadia/edgeproperty.h> // [!] the toggle modifier bit should be put in the model
@@ -73,7 +75,9 @@ std::string PathwayGraphController::getImportFileTypes()
 void PathwayGraphController::toggleModifiersCloning()
 {
 	if (this->busy) return;
-//	this->busy = true; // will be handled by the toggle clone method
+	this->busy = true;
+	
+	this->saveUndo();
 	
 	std::list<BGL_Vertex> vList = this->_graphModel->getVertices();	
 	for (std::list<BGL_Vertex>::iterator vit = vList.begin(); vit != vList.end(); ++vit)
@@ -83,12 +87,12 @@ void PathwayGraphController::toggleModifiersCloning()
 		{
 			if (this->_graphModel->getProperties(*eit)->getTypeLabel() == "Modifier")
 			{
-				this->toggleCloning(*vit, NULL, NULL);
+				this->selfToggleCloning(*vit, NULL, NULL);
 			}
 		}
 	}	
 	
-//	this->busy = false;
+	this->busy = false;
 }
 
 // [!] not implemented yet!!
@@ -97,11 +101,13 @@ void PathwayGraphController::toggleReactionsFusing()
 	if (this->busy) return;
 	this->busy = true;
 
+	this->saveUndo();
+
 	std::list<BGL_Vertex> rList;	
 	std::list<BGL_Vertex> vList = this->_graphModel->getVertices();	
 	for (std::list<BGL_Vertex>::iterator vit = vList.begin(); vit != vList.end(); ++vit)
 	{
-		if (this->_graphModel->getProperties(*vit)->getTypeLabel() == "Reaction") rList.push_back(*vit);
+		if (this->_graphModel->getProperties(*vit)->getTypeLabel(true) == "Reaction") rList.push_back(*vit);
 	}
 
 	this->_graphModel->toggleFusing(rList);
@@ -152,7 +158,16 @@ void PathwayGraphController::toggleReactionsFusing()
 */
 
 // [!] utopia node
-PathwayGraphController::PathwayGraphController() : GraphController() {}
+PathwayGraphController::PathwayGraphController(std::string dirName, std::string fileName) : GraphController("")
+{
+	if (dirName != "") this->setSBO(dirName, false);
+	if (fileName != "") this->load(fileName);
+}
+
+void PathwayGraphController::setSBO(std::string dirName, bool fullPath)
+{
+	OntologyContainer::LoadLocalSBO(dirName, fullPath);
+}
 
 void PathwayGraphController::lookUpResources(BGL_Vertex v)
 {

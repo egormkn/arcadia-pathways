@@ -31,6 +31,7 @@
  */
 
 #include <iostream>
+#include <stdexcept>
 #include <QtXml>
 #include <QDomDocument>
 
@@ -48,15 +49,25 @@ int OntologyContainer::inherits(std::string child, std::string parent)
 
 OntologyContainer * OntologyContainer::MyLocalSBO = NULL;
 
+void OntologyContainer::LoadLocalSBO(std::string dirName, bool fullPath)
+{
+	if (!fullPath)
+	{
+		if (dirName == "") dirName = ".";
+		std::string path = "\\res\\SBO_XML.xml"; // windows, *nix
+		#ifdef MAC_COMPILATION
+		path = "/../Resources/SBO_XML.xml";
+	//	path = "/arcadia.app/Contents/Resources/SBO_XML.xml";
+		#endif
+		dirName += path;
+	}
+
+	OntologyContainer::MyLocalSBO = new OntologyContainer(dirName);
+}
+
 OntologyContainer * OntologyContainer::GetMyLocalSBO()
 {
-	std::string path = "./res/SBO_XML.xml"; // windows, *nix
-
-	#ifdef MAC_COMPILATION
-	path = "./arcadia.app/Contents/Resources/SBO_XML.xml";
-	#endif
-	
-	if (OntologyContainer::MyLocalSBO == NULL) OntologyContainer::MyLocalSBO = new OntologyContainer(path);
+	if (!OntologyContainer::MyLocalSBO) OntologyContainer::LoadLocalSBO();
 	return OntologyContainer::MyLocalSBO;
 }
 
@@ -71,6 +82,8 @@ std::string OntologyContainer::GetTextFromUniqueTag(QDomElement * e, std::string
 
 OntologyContainer::OntologyContainer(std::string fileName) // at the moment, only support the XML format used for SBO
 {
+	if (fileName == "") return; // dummy
+
 	// loading the file into an XML document
 	QDomDocument doc("mydocument");
 	QFile file(fileName.c_str());
@@ -85,10 +98,9 @@ OntologyContainer::OntologyContainer(std::string fileName) // at the moment, onl
 	
 	if (failure)
 	{
-		std::cout << "Couldn't load ontology " << fileName << std::endl;
+		throw std::runtime_error("OntologyContainer::OntologyContainer\nCould not load ontology from "+fileName);
 		return;
-	}
-	
+	}	
 
 	// parsing the XML document and loading into my ontology structure
 	QDomElement docElem = doc.documentElement();

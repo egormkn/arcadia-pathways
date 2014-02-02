@@ -41,6 +41,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QToolBar>
+#include <QMessageBox>
 
 // local GraphViews
 #include "modelgraphview.h"
@@ -60,18 +61,22 @@
 * Loads a new graph
 * And displays the window
 *****************************/
-GraphWindow::GraphWindow(bool fullVersion, GraphController * gc, bool preloaded)
+GraphWindow::GraphWindow(bool fullVersion, GraphController * gc, bool preloaded) : controller(NULL)
 {
 	if (!gc)	gc = new GraphController();
+
 	this->controller = gc;
 
 	this->createControls(fullVersion);
+
 	this->createViews(fullVersion);
 
-	if (!preloaded)	this->newGraph();
-	else			this->setWindowTitle(this->controller->getModelTitle().c_str());
-		
+	if (!preloaded)	this->setWindowTitle("No Document");//this->newGraph();
+	else			if (this->controller) this->setWindowTitle(this->controller->getModelTitle().c_str());
+				
 	this->show();
+	
+	gc->setGraphWindow(this);// linking the undo flag
 }
 
 /*************
@@ -82,7 +87,7 @@ GraphWindow::GraphWindow(bool fullVersion, GraphController * gc, bool preloaded)
 GraphWindow::~GraphWindow()
 {
 	this->closeGraph();
-	delete this->controller;
+	if (this->controller) delete this->controller;
 }
 
 /*********************************************************************
@@ -109,12 +114,12 @@ void GraphWindow::newGraph()
 *****************************************************/
 void GraphWindow::openGraph()
 {
-	std::string fileTypes = this->controller->getImportFileTypes();
-	std::string path = this->controller->getFileName();
+	std::string fileTypes = (this->controller? this->controller->getImportFileTypes() : "");
+	std::string path = (this->controller? this->controller->getFileName() : "");
 
 	QString openedFile = QFileDialog::getOpenFileName(NULL, QObject::tr("Open Graph File"), path.c_str(), QObject::tr(fileTypes.c_str()));
 	if (!openedFile.length()) return;
-
+	
 	this->loadGraph(openedFile.toStdString());
 }
 
@@ -128,11 +133,14 @@ void GraphWindow::openGraph()
 **********************************************************/
 void GraphWindow::saveGraph()
 {
-	this->controller->save("");
+	if (this->controller) this->controller->save("");
 }
 
 void GraphWindow::exportGraph()
 {
+	if (!this->controller) return;
+	if (this->controller->isEmpty()) return;
+	
 	std::string fileTypes = this->controller->getExportFileTypes();
 	std::string path = this->controller->getFileName();
 
@@ -145,7 +153,7 @@ void GraphWindow::exportGraph()
 void GraphWindow::screengrab()
 {
 	// PDF Screenshot?
-	std::string fName = this->controller->getFileName() + ".png";
+	std::string fName =  (this->controller? this->controller->getFileName() : "no_name") + ".png";
 	// doesn't seem actually possible in the current release!.png instead
 	QPixmap pixmap(this->size());
 	this->render(&pixmap);
@@ -165,7 +173,7 @@ void GraphWindow::screengrab()
 ******************************************************************************************/
 void GraphWindow::closeGraph()
 {
-	this->controller->close();
+	if (this->controller) this->controller->close();
 }
 
 /************
@@ -181,8 +189,22 @@ void GraphWindow::closeGraph()
 void GraphWindow::loadGraph(std::string filename)
 {
 	this->closeGraph();
-	this->controller->load(filename);
-	this->setWindowTitle(this->controller->getModelTitle().c_str());
+	
+	try
+	{
+		if (this->controller) this->controller->load(filename);
+	}
+	catch(std::exception& err)
+	{
+		// create an alert window with the relevant error message
+//		std::string title = "Cannot open file";
+		std::string title = "Errors were encountered while opening the file";
+		std::string text = title + "\n\n" + err.what();
+		QMessageBox::critical ( this, title.c_str(), text.c_str() );
+//		return;
+	}
+
+	if (this->controller) this->setWindowTitle(this->controller->getModelTitle().c_str());
 }
 
 /*********************************************************************
@@ -262,12 +284,13 @@ void GraphWindow::createControls(bool fullVersion)
 	action = this->createAction(fileActionList, "&New", "Ctrl+N", "Create a new file");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( newGraph() ));
 */	
+
 	action = this->createAction(fileActionList, "&Open", "Ctrl+O", "Open an existing file");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( openGraph() ));
-	
+
 	action = this->createAction(fileActionList, "&Save", "Ctrl+S", "Save an existing file");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( saveGraph() ));
-	
+
 	action = this->createAction(fileActionList, "&Export", "Ctrl+E", "Export an existing file");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( exportGraph() ));
 
@@ -281,7 +304,11 @@ void GraphWindow::createControls(bool fullVersion)
 	action = this->createAction(editActionList, "Fuse/Unfuse Similar &Reactions", "Ctrl+R", "Fuse/unfuse similar reactions");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( toggleReactionsFusing() ));
 */
-
+	action = this->createAction(editActionList, "Undo", "Ctrl+Z", "Cancels last action");
+	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( undo() ));
+	undoAction = action;
+	undoAction->setDisabled(true);
+	
 	action = this->createAction(editActionList, "&Update Layout", "Ctrl+U", "Computes automatic layout");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( updateLayout() ));
 
@@ -316,6 +343,7 @@ void GraphWindow::createControls(bool fullVersion)
 	if (toolbar)
 	{
 		this->createToolbar(fileActionList, "File", Qt::TopToolBarArea | Qt::BottomToolBarArea, Qt::TopToolBarArea);
+		this->createToolbar(undoAction, "Undo", Qt::TopToolBarArea | Qt::BottomToolBarArea, Qt::TopToolBarArea);
 //		this->createToolbar(editActionList, "Action", Qt::TopToolBarArea | Qt::BottomToolBarArea, Qt::TopToolBarArea);
 //		this->createToolbar(viewActionList, "View", Qt::TopToolBarArea | Qt::BottomToolBarArea, Qt::TopToolBarArea);
 	}
@@ -328,7 +356,15 @@ QMenu * GraphWindow::createMenu(std::list<QAction*> &actionList, const char * na
 	{
 		menu->addAction(*it);
 	}
+	
 	return menu;
+}
+
+QToolBar * GraphWindow::createToolbar(QAction * action, const char * name, Qt::ToolBarAreas allowedAreas, Qt::ToolBarArea defaultArea)
+{
+	std::list<QAction*> actionList;
+	actionList.push_back(action);
+	this->createToolbar(actionList, name, allowedAreas, defaultArea);
 }
 
 QToolBar * GraphWindow::createToolbar(std::list<QAction*> &actionList, const char * name, Qt::ToolBarAreas allowedAreas, Qt::ToolBarArea defaultArea)
@@ -351,6 +387,7 @@ QToolBar * GraphWindow::createToolbar(std::list<QAction*> &actionList, const cha
 QAction * GraphWindow::createAction(std::list<QAction*> &actionList, const char * name, const char * shortCut, const char * tip, std::string iconFile)
 {
 	QAction * action = new QAction(tr(name), this);
+	
 	action->setShortcut(tr(shortCut));
 	action->setStatusTip(tr(tip));
 
@@ -371,35 +408,45 @@ QAction * GraphWindow::createAction(std::list<QAction*> &actionList, const char 
 
 void GraphWindow::toggleAvoidingEdges()
 {
-	this->controller->toggleAvoidingEdges();
+	if (this->controller) this->controller->toggleAvoidingEdges();
 }
 
 void GraphWindow::toggleModifiersCloning()
 {
-	this->controller->toggleModifiersCloning();
+	if (this->controller) this->controller->toggleModifiersCloning();
 }
 
 void GraphWindow::toggleReactionsFusing()
 {
-	this->controller->toggleReactionsFusing();
+	if (this->controller) this->controller->toggleReactionsFusing();
 }
 
 void GraphWindow::destroyLayout()
 {
-	this->controller->destroyLayout();
+	if (this->controller) this->controller->destroyLayout();
+}
+
+void GraphWindow::undo()
+{
+	if (this->controller) this->controller->undo();
+}
+
+void GraphWindow::enableUndo(bool enable)
+{
+	this->undoAction->setEnabled(enable);
 }
 
 void GraphWindow::updateLayout()
 {
-	this->controller->updateLayout(NULL, false, false);
+	if (this->controller) this->controller->updateLayout(NULL, false, false);
 }
 
 void GraphWindow::arrangeSelection()
 {
-	this->controller->arrangeSelection();
+	if (this->controller) this->controller->arrangeSelection();
 }
 
 void GraphWindow::toggleContainerVisibility()
 {
-	this->controller->toggleContainerVisibility();
+	if (this->controller) this->controller->toggleContainerVisibility();
 }

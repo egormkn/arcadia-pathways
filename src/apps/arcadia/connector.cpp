@@ -62,7 +62,7 @@ void Connector::quickUpdate()
 * sets up the source and target
 * and notify them of their new Connector
 ****************************************/
-Connector::Connector(CloneContent *s, CloneContent *t) : source(NULL), target(NULL), sourceConnection(neutral), targetConnection(neutral)
+Connector::Connector(CloneContent *s, CloneContent *t, BGL_Edge e) : edge(e), source(NULL), target(NULL), sourceConnection(neutral), targetConnection(neutral)
 {
 	this->setSource(s);
 	this->setTarget(t);

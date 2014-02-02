@@ -64,8 +64,9 @@ public:
 	PathwayGraphController(UTOPIA2::Node * model, std::string fileName);  // [!] utopia node
 #endif
 */
+	void setSBO(std::string dirName = "", bool fullPath = false);
 
-	PathwayGraphController();  // [!] utopia node
+	PathwayGraphController(std::string dirName="", std::string fileName="");  // [!] utopia node
 };
 
 #endif

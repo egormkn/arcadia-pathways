@@ -42,7 +42,7 @@ class EdgeStyle;
 class ContainerStyle;
 
 // [!] dirty hack...
-typedef enum CloneProperty { notClone, isClone, midget, rotated, inverted };
+typedef enum CloneProperty { notClone, isClone, isMidget, isRotated, isInverted };
 
 /*******************
 * StyleSheet *

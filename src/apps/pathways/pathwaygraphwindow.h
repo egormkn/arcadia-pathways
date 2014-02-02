@@ -48,7 +48,7 @@
 class PathwayGraphWindow : public GraphWindow
 {
 public:
-	PathwayGraphWindow(bool fullVersion);
+	PathwayGraphWindow(bool fullVersion=true, std::string dirName="", std::string fileName="");
 
 /*
 #if utopia
@@ -56,6 +56,8 @@ public:
 #endif
 */
 
+private:
+	void loadSBO(std::string dirName="", bool fullPath = false);
 };
 
 #endif

@@ -44,6 +44,7 @@
 
 #include <iostream>
 
+// EPN/Species SBO
 int PathwayStyleSheet::UnspecifiedEntity = 285;
 int PathwayStyleSheet::SimpleChemical = 247;
 int PathwayStyleSheet::Macromolecule = 245;
@@ -53,14 +54,30 @@ int PathwayStyleSheet::SourceSink = 291;
 int PathwayStyleSheet::Observable = 358;
 int PathwayStyleSheet::Perturbation = 357;
 int PathwayStyleSheet::Complex = 253;
+
+//  SBML convention for marking species causing perturbations
+int PathwayStyleSheet::PerturbingAgent = 405;
+
+// PN/Reaction SBO
 int PathwayStyleSheet::Transition = 167;
 int PathwayStyleSheet::Association = 177;
 int PathwayStyleSheet::Dissociation = 180;
-int PathwayStyleSheet::Modulation = 168;
-int PathwayStyleSheet::Stimulation = 170;
-int PathwayStyleSheet::Catalysis = 172;
-int PathwayStyleSheet::Inhibition = 169;
-int PathwayStyleSheet::Trigger = 171;
+
+// Modulation Arc SBO = SBGN convention (refers to the phenomenom, not the actor itself...)
+int PathwayStyleSheet::Modulation = 168; // Control
+int PathwayStyleSheet::Stimulation = 170; // Stimulation
+int PathwayStyleSheet::Catalysis = 172; // Catalysis
+int PathwayStyleSheet::Inhibition = 169; // Inhibition
+int PathwayStyleSheet::Trigger = 171; // Necessary Stimulation
+
+// ModifierSpeciesReference SBO [!] SBML actor in the phenomenom described in SBGN
+int PathwayStyleSheet::ModulationActor = 19; // Modifier
+int PathwayStyleSheet::StimulationActor = 459; // Stimulator
+int PathwayStyleSheet::CatalysisActor = 13; // Catalyst
+int PathwayStyleSheet::InhibitionActor = 20; // Inhibitor
+int PathwayStyleSheet::TriggerActor = 461; // Essential Stimulator
+
+// Not used at the moment...
 int PathwayStyleSheet::AndOperator = 173;
 int PathwayStyleSheet::OrOperator = 174;
 int PathwayStyleSheet::NotOperator = 238;
@@ -70,9 +87,6 @@ int PathwayStyleSheet::NotOperator = 238;
 /*
 missing:
 289 compartment/functional compartment
-173 and
-174 or
-238 not
 */
 
 VertexStyle * PathwayStyleSheet::getVertexStyle(VertexProperty * vp, CloneProperty cp)
@@ -101,19 +115,19 @@ VertexStyle * PathwayStyleSheet::getVertexStyle(VertexProperty * vp, CloneProper
 
 			if (sbo == PathwayStyleSheet::Transition)
 			{
-				if (cp == rotated) vs = RotatedReactionVertexStyle::GetDefaultStyle();
+				if (cp == isRotated) vs = RotatedReactionVertexStyle::GetDefaultStyle();
 				else vs = ReactionVertexStyle::GetDefaultStyle();			
 			}
 
 			if (sbo == PathwayStyleSheet::Association)
 			{
-				if (cp == rotated) vs = RotatedAssociationReactionVertexStyle::GetDefaultStyle();
+				if (cp == isRotated) vs = RotatedAssociationReactionVertexStyle::GetDefaultStyle();
 				else vs = AssociationReactionVertexStyle::GetDefaultStyle();
 			}
 
 			if (sbo == PathwayStyleSheet::Dissociation)
 			{
-				if (cp == rotated) vs = RotatedDissociationReactionVertexStyle::GetDefaultStyle();
+				if (cp == isRotated) vs = RotatedDissociationReactionVertexStyle::GetDefaultStyle();
 				else vs = DissociationReactionVertexStyle::GetDefaultStyle();
 			}
 		}
@@ -141,6 +155,8 @@ VertexStyle * PathwayStyleSheet::getVertexStyle(VertexProperty * vp, CloneProper
 
 			d = vp->inherits(PathwayStyleSheet::Perturbation);
 			if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Perturbation; }
+			d = vp->inherits(PathwayStyleSheet::PerturbingAgent);
+			if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Perturbation; }
 
 			d = vp->inherits(PathwayStyleSheet::UnspecifiedEntity);
 			if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::UnspecifiedEntity; }
@@ -148,56 +164,56 @@ VertexStyle * PathwayStyleSheet::getVertexStyle(VertexProperty * vp, CloneProper
 			if (sbo == PathwayStyleSheet::SimpleChemical)
 			{
 				if (cp == isClone) { vs = ClonedSimpleSpeciesVertexStyle::GetDefaultStyle(); }
-				else if (cp == midget) { vs = MidgetSimpleSpeciesVertexStyle::GetDefaultStyle(); }
+				else if (cp == isMidget) { vs = MidgetSimpleSpeciesVertexStyle::GetDefaultStyle(); }
 				else { vs = SimpleSpeciesVertexStyle::GetDefaultStyle(); }		
 			}
 
 			if (sbo == PathwayStyleSheet::Macromolecule)
 			{
 				if (cp == isClone) { vs = ClonedMacromoleculeSpeciesVertexStyle::GetDefaultStyle(); }
-				else if (cp == midget) { vs = MidgetMacromoleculeSpeciesVertexStyle::GetDefaultStyle(); }
+				else if (cp == isMidget) { vs = MidgetMacromoleculeSpeciesVertexStyle::GetDefaultStyle(); }
 				else { vs = MacromoleculeSpeciesVertexStyle::GetDefaultStyle(); }
 			}
 
 			if (sbo == PathwayStyleSheet::Complex)
 			{
 				if (cp == isClone) { vs = ClonedComplexSpeciesVertexStyle::GetDefaultStyle(); }
-				else if (cp == midget) { vs = MidgetComplexSpeciesVertexStyle::GetDefaultStyle(); }
+				else if (cp == isMidget) { vs = MidgetComplexSpeciesVertexStyle::GetDefaultStyle(); }
 				else { vs = ComplexSpeciesVertexStyle::GetDefaultStyle(); }
 			}			
 
 			if (sbo == PathwayStyleSheet::Multimer)
 			{
 				if (cp == isClone) { vs = ClonedMultimerSpeciesVertexStyle::GetDefaultStyle(); }
-				else if (cp == midget) { vs = MidgetMultimerSpeciesVertexStyle::GetDefaultStyle(); }
+				else if (cp == isMidget) { vs = MidgetMultimerSpeciesVertexStyle::GetDefaultStyle(); }
 				else { vs = MultimerSpeciesVertexStyle::GetDefaultStyle(); }
 			}			
 
 			if (sbo == PathwayStyleSheet::NucleicAcidFeature)
 			{
 				if (cp == isClone) { vs = ClonedNAFeatureSpeciesVertexStyle::GetDefaultStyle(); }
-				else if (cp == midget) { vs = MidgetNAFeatureSpeciesVertexStyle::GetDefaultStyle(); }
+				else if (cp == isMidget) { vs = MidgetNAFeatureSpeciesVertexStyle::GetDefaultStyle(); }
 				else { vs = NAFeatureSpeciesVertexStyle::GetDefaultStyle(); }
 			}			
 
 			if (sbo == PathwayStyleSheet::Observable)
 			{
 				if (cp == isClone) { vs = ClonedObservableSpeciesVertexStyle::GetDefaultStyle(); }
-				else if (cp == midget) { vs = MidgetObservableSpeciesVertexStyle::GetDefaultStyle(); }
+				else if (cp == isMidget) { vs = MidgetObservableSpeciesVertexStyle::GetDefaultStyle(); }
 				else { vs = ObservableSpeciesVertexStyle::GetDefaultStyle(); }
 			}			
 
 			if (sbo == PathwayStyleSheet::Perturbation)
 			{
 				if (cp == isClone) { vs = ClonedPerturbationSpeciesVertexStyle::GetDefaultStyle(); }
-				else if (cp == midget) { vs = MidgetPerturbationSpeciesVertexStyle::GetDefaultStyle(); }
+				else if (cp == isMidget) { vs = MidgetPerturbationSpeciesVertexStyle::GetDefaultStyle(); }
 				else { vs = PerturbationSpeciesVertexStyle::GetDefaultStyle(); }
 			}			
 
 			if (sbo == PathwayStyleSheet::UnspecifiedEntity)
 			{
 				if (cp == isClone) { vs = ClonedSpeciesVertexStyle::GetDefaultStyle(); }
-				else if (cp == midget) { vs = MidgetSpeciesVertexStyle::GetDefaultStyle(); }
+				else if (cp == isMidget) { vs = MidgetSpeciesVertexStyle::GetDefaultStyle(); }
 				else { vs = SpeciesVertexStyle::GetDefaultStyle(); }
 			}
 		}
@@ -209,21 +225,21 @@ VertexStyle * PathwayStyleSheet::getVertexStyle(VertexProperty * vp, CloneProper
 
 		if (type == "Reaction")
 		{
-			if (cp == rotated) vs = RotatedReactionVertexStyle::GetDefaultStyle();
+			if (cp == isRotated) vs = RotatedReactionVertexStyle::GetDefaultStyle();
 			else vs = ReactionVertexStyle::GetDefaultStyle();
 		}
 
 		if (type == "enzyme") // Not SBGN! what is SBO?
 		{
 			if (cp == isClone) { vs = ClonedEnzymeSpeciesVertexStyle::GetDefaultStyle(); }
-			else if (cp == midget) { vs = MidgetEnzymeSpeciesVertexStyle::GetDefaultStyle(); }
+			else if (cp == isMidget) { vs = MidgetEnzymeSpeciesVertexStyle::GetDefaultStyle(); }
 			else { vs = EnzymeSpeciesVertexStyle::GetDefaultStyle(); }
 		}
 
 		if (type == "transporter") // Not SBGN! what is SBO?
 		{
 			if (cp == isClone) { vs = ClonedTransporterSpeciesVertexStyle::GetDefaultStyle(); }
-			else if (cp == midget) { vs = MidgetTransporterSpeciesVertexStyle::GetDefaultStyle(); }
+			else if (cp == isMidget) { vs = MidgetTransporterSpeciesVertexStyle::GetDefaultStyle(); }
 			else { vs = TransporterSpeciesVertexStyle::GetDefaultStyle(); }
 		}
 	
@@ -235,7 +251,25 @@ VertexStyle * PathwayStyleSheet::getVertexStyle(VertexProperty * vp, CloneProper
 		if (type == "Species" || type == "metabolite")
 		{
 			if (cp == isClone) { vs = ClonedSpeciesVertexStyle::GetDefaultStyle(); }
-			else if (cp == midget) { vs = MidgetSpeciesVertexStyle::GetDefaultStyle(); }
+			else if (cp == isMidget) { vs = MidgetSpeciesVertexStyle::GetDefaultStyle(); }
+			else { vs = SpeciesVertexStyle::GetDefaultStyle(); }
+		}
+	}
+	
+	if (!vs) // some species or reactions may have fancy sbo terms not covered above: use default style
+	{
+		std::string type = vp->getTypeLabel(true);
+
+		if (type == "Reaction")
+		{
+			if (cp == isRotated) vs = RotatedReactionVertexStyle::GetDefaultStyle();
+			else vs = ReactionVertexStyle::GetDefaultStyle();
+		}
+
+		if (type == "Species")
+		{
+			if (cp == isClone) { vs = ClonedSpeciesVertexStyle::GetDefaultStyle(); }
+			else if (cp == isMidget) { vs = MidgetSpeciesVertexStyle::GetDefaultStyle(); }
 			else { vs = SpeciesVertexStyle::GetDefaultStyle(); }
 		}
 	}
@@ -262,17 +296,27 @@ EdgeStyle * PathwayStyleSheet::getEdgeStyle(EdgeProperty * ep)
 		
 		d = ep->inherits(PathwayStyleSheet::Modulation);
 		if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Modulation; }
+		d = ep->inherits(PathwayStyleSheet::ModulationActor);
+		if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Modulation; }
 
 		d = ep->inherits(PathwayStyleSheet::Stimulation);
+		if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Stimulation; }
+		d = ep->inherits(PathwayStyleSheet::StimulationActor);
 		if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Stimulation; }
 
 		d = ep->inherits(PathwayStyleSheet::Catalysis);
 		if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Catalysis; }
+		d = ep->inherits(PathwayStyleSheet::CatalysisActor);
+		if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Catalysis; }
 
 		d = ep->inherits(PathwayStyleSheet::Inhibition);
 		if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Inhibition; }
+		d = ep->inherits(PathwayStyleSheet::InhibitionActor);
+		if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Inhibition; }
 
 		d = ep->inherits(PathwayStyleSheet::Trigger);
+		if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Trigger; }
+		d = ep->inherits(PathwayStyleSheet::TriggerActor);
 		if (d != -1) if (dmin == -1 || d < dmin) { dmin = d; sbo = PathwayStyleSheet::Trigger; }
 
 		if (sbo == PathwayStyleSheet::Modulation)

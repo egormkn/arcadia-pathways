@@ -145,12 +145,15 @@ void ListGraphView::display(GraphModel * gModel)
 {
 	GraphView::display(gModel);
 
+	if (!this->graphModel) this->graphLayout = NULL;
+
 	this->treeWidget->clear();
 	this->vertexToListItem.clear();
 	this->listItemToVertex.clear();
 	this->classToListItem.clear();
 
-	std::list<BGL_Vertex> vList = this->graphModel->getVertices();
+	std::list<BGL_Vertex> vList;
+	if (this->graphModel) vList = this->graphModel->getVertices();
 	for (std::list<BGL_Vertex>::iterator it = vList.begin(); it != vList.end(); ++it)
 	{	
 		this->addVertex(*it);		
@@ -162,7 +165,8 @@ void ListGraphView::display(GraphModel * gModel)
 	
 	if (!edges) return;
 
-	std::list<BGL_Edge> eList = this->graphModel->getEdges();
+	std::list<BGL_Edge> eList;
+	if (this->graphModel) eList = this->graphModel->getEdges();
 	for (std::list<BGL_Edge>::iterator it = eList.begin(); it != eList.end(); ++it)
 	{
 		this->addEdge(*it);
@@ -339,21 +343,26 @@ void ListGraphView::createMenu()
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( switchToLocalView() ));
 	actionList.push_back(action);
 
+/*
 	action = this->createAction("&New view", "Ctrl+N", "Creates a new view");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( createNewView() ));
 	actionList.push_back(action);
-
+*/
+/*
 	action = this->createAction("&Expand view", "Ctrl+E", "Expands the view");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( expandCurrentView() ));
 	actionList.push_back(action);
-
+*/
+/*
 	action = this->createAction("&Remove", "Ctrl+R", "Remove from the view");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( removeFromView() ));
 	actionList.push_back(action);
-
+*/
+/*
 	action = this->createAction("&Move", "Ctrl+M", "Move to a new view");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( moveToNewView() ));
 	actionList.push_back(action);
+*/
 
 /*
 	std::list<std::string> aList = this->controller->getActions();
@@ -397,6 +406,7 @@ void ListGraphView::switchToLocalView()
 	this->switchView(vList);
 }
 
+/*
 void ListGraphView::createNewView()
 {
 	std::list<BGL_Vertex> vList;
@@ -411,7 +421,8 @@ void ListGraphView::createNewView()
 
 	this->createView(vList);
 }
-
+*/
+/*
 void ListGraphView::expandCurrentView()
 {
 	std::list<BGL_Vertex> vList;
@@ -426,14 +437,18 @@ void ListGraphView::expandCurrentView()
 
 	this->expandView(vList, NULL);
 }
+*/
 
+/*
 void  ListGraphView::removeFromView()
 {
 }
-
+*/
+/*
 void  ListGraphView::moveToNewView()
 {
 }
+*/
 
 QAction * ListGraphView::createAction(const char * name, const char * shortCut, const char * tip)
 {

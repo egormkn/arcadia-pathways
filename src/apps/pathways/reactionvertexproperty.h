@@ -51,28 +51,34 @@ class Reaction;
 class ReactionVertexProperty : public PathwayVertexProperty
 {
 public:
-	ReactionVertexProperty(Reaction * r);
+	ReactionVertexProperty(Reaction * r, PathwayGraphModel * m);
 	std::string getInfo();
 	bool clonable();
 
-	std::string getTypeLabel();
+	std::string getTypeLabel(bool highest=false);
 	std::string getSuperTypeLabel();
 	
 	std::string getCompartment();
+	void setCompartment(std::string c) { this->compartment = c; }
 	
 	bool isReversible();
 	
 	std::map<std::string, std::string> getInfoMap();
+
+	std::string getFormula(const ASTNode * tree);
+
+private:
+	std::string compartment;
 };
 
 class SourceOrSinkProperty : public VertexProperty
 {
 public:
 	SourceOrSinkProperty(bool iS, ReactionVertexProperty * r) : isSource(iS), reaction(r) {}
-	std::string getId() { return this->isSource? "Source" : "Sink"; }
+	std::string getLabel() { return this->isSource? "Source" : "Sink"; } // the id, however, is ""
 	std::string getCompartment() { return this->reaction->getCompartment();}
 
-	std::string getTypeLabel() { return "empty set"; }
+	std::string getTypeLabel(bool highest=false) { if (highest) return this->getSuperTypeLabel(); else return "empty set"; }
 	std::string getSuperTypeLabel() { return "Species"; }
 	
 private:

@@ -103,9 +103,18 @@ private:
 	// styling stuff
 	QRectF getBoundingRect(QPainterPath path, EdgePart type) const;
 	void configurePainting(QPainter *painter, EdgePart type, bool isSelected);
-	QPainterPath getSplinePath(std::list<QPointF> controlPoints);
-	QPainterPath getTargetDecoration(std::list<QPointF> controlPoints, QGraphicsItem * mask);
-	QPainterPath getSourceDecoration(std::list<QPointF> controlPoints, QGraphicsItem * mask);
+
+	QPainterPath getSplinePath(QGraphicsItem * sourceShape, QGraphicsItem * targetShape);
+	QPainterPath getStraightPath(QGraphicsItem * sourceShape, QGraphicsItem * targetShape);
+
+	QPainterPath getDecorationPath(EdgeDecoration decoStyle, QPointF pos, float angle);
+	QPointF getDecorationPos(QPointF src, QPointF tar, QGraphicsItem * endItem, bool isSource, float * angle = NULL);
+	QPointF getDecorationPosOnSpline(QGraphicsItem * endItem, bool isSource, float * angle = NULL);
+	bool isInShape(QPointF p, QGraphicsItem * endItem, EdgeDecoration deco, float * angle = NULL);
+	QPointF addDecorationOffset(QPointF p, EdgeDecoration deco, bool isSource);
+	
+	QPainterPath getSourceDecoration(QGraphicsItem * sourceShape);
+	QPainterPath getTargetDecoration(QGraphicsItem * targetShape);
 };
 
 #endif

@@ -69,7 +69,7 @@ public:
 
 	virtual std::map<std::string, std::string> getInfoMap();	
 	
-	virtual std::string getTypeLabel();
+	virtual std::string getTypeLabel(bool highest=false);
 	virtual std::string getSuperTypeLabel() { return ""; }
 
 	virtual bool clonable();

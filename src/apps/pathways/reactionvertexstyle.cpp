@@ -51,7 +51,7 @@ ReactionVertexStyle* ReactionVertexStyle::GetDefaultStyle() {
 /*******************************************
 * ReactionVertexStyle: a Magenta Rectangle *
 ********************************************/
-ReactionVertexStyle::ReactionVertexStyle() : VertexStyle(255, 0, 255, squareIOVert) { this->showLabel = false; }
+ReactionVertexStyle::ReactionVertexStyle() : VertexStyle(255, 0, 255, squareIOVert, 5, 2, 5) { this->showLabel = false; }
 
 /******************************
 * DefaultStyle: the Singleton *
@@ -72,7 +72,7 @@ RotatedReactionVertexStyle* RotatedReactionVertexStyle::GetDefaultStyle() {
 /*******************************************
 * ReactionVertexStyle: a Magenta Rectangle *
 ********************************************/
-RotatedReactionVertexStyle::RotatedReactionVertexStyle() : VertexStyle(255, 0, 255, squareIOHori) { this->showLabel = false; }
+RotatedReactionVertexStyle::RotatedReactionVertexStyle() : VertexStyle(255, 0, 255, squareIOHori, 5, 2, 5) { this->showLabel = false; }
 
 //////////////////////
 // Association
@@ -85,7 +85,7 @@ AssociationReactionVertexStyle* AssociationReactionVertexStyle::GetDefaultStyle(
 	return AssociationReactionVertexStyle::DefaultStyle;
 }
 
-AssociationReactionVertexStyle::AssociationReactionVertexStyle() : VertexStyle(255, 0, 255, circleIOVert) { this->showLabel = false; this->fillInside = background; }
+AssociationReactionVertexStyle::AssociationReactionVertexStyle() : VertexStyle(255, 0, 255, circleIOVert, 10, 2, 10) { this->showLabel = false; this->fillInside = background; }
 
 //////////////////////
 // Association
@@ -98,7 +98,7 @@ RotatedAssociationReactionVertexStyle* RotatedAssociationReactionVertexStyle::Ge
 	return RotatedAssociationReactionVertexStyle::DefaultStyle;
 }
 
-RotatedAssociationReactionVertexStyle::RotatedAssociationReactionVertexStyle() : VertexStyle(255, 0, 255, circleIOHori) { this->showLabel = false; this->fillInside = background; }
+RotatedAssociationReactionVertexStyle::RotatedAssociationReactionVertexStyle() : VertexStyle(255, 0, 255, circleIOHori, 10, 2, 10) { this->showLabel = false; this->fillInside = background; }
 
 //////////////////////
 // Dissociation
@@ -111,7 +111,7 @@ DissociationReactionVertexStyle* DissociationReactionVertexStyle::GetDefaultStyl
 	return DissociationReactionVertexStyle::DefaultStyle;
 }
 
-DissociationReactionVertexStyle::DissociationReactionVertexStyle() : VertexStyle(255, 0, 255, donutIOVert) { this->showLabel = false; }
+DissociationReactionVertexStyle::DissociationReactionVertexStyle() : VertexStyle(255, 0, 255, donutIOVert, 10, 2, 10) { this->showLabel = false; }
 
 //////////////////////
 // Dissociation
@@ -124,4 +124,4 @@ RotatedDissociationReactionVertexStyle* RotatedDissociationReactionVertexStyle::
 	return RotatedDissociationReactionVertexStyle::DefaultStyle;
 }
 
-RotatedDissociationReactionVertexStyle::RotatedDissociationReactionVertexStyle() : VertexStyle(255, 0, 255, donutIOHori) { this->showLabel = false; }
+RotatedDissociationReactionVertexStyle::RotatedDissociationReactionVertexStyle() : VertexStyle(255, 0, 255, donutIOHori, 10, 2, 10) { this->showLabel = false; }

@@ -33,6 +33,8 @@
 #ifndef MODELGRAPHVIEW_H
 #define MODELGRAPHVIEW_H
 
+#include <iostream>
+
 // Qt base class
 #include <QFrame>
 
@@ -40,12 +42,23 @@
 #include "graphview.h"
 
 // Qt inner components
-class QGraphicsView;
+#include <QGraphicsView>
 class QSlider;
 class QTabWidget;
 
 // local inner component
 class LayoutGraphView;
+
+class MapView : public QGraphicsView
+{
+/*
+protected:
+	void mouseDoubleClickEvent ( QMouseEvent * event )
+	{
+		QGraphicsView::mouseDoubleClickEvent(event);
+	}
+*/
+};
 
 /***********
 * ModelGraphView *
@@ -78,6 +91,14 @@ class LayoutGraphView;
 class ModelGraphView : public QFrame, public GraphView
 {
 	Q_OBJECT
+
+/*	
+protected:
+	void mouseDoubleClickEvent ( QMouseEvent * event )
+	{
+		QFrame::mouseDoubleClickEvent(event);
+	}
+*/
 	
 public:
 	ModelGraphView(GraphController * c, bool zoomEnabled = true, QWidget * parent = NULL);
@@ -89,6 +110,9 @@ public:
 	void layoutGotAdded();
 	void layoutGotRemoved(GraphLayout * gl);
 	void selectLayout(GraphLayout * gl);
+	
+	LayoutGraphView * getLayoutView(int i=0);
+	MapView * getLayoutWidget(int i=0);
 	
 private slots:
 	void sceneSwitched(int scene = -1);
@@ -116,6 +140,7 @@ public:
 	~TabbedWidget();
 	void setScene(GraphController * c, int l);
 	LayoutGraphView * getScene() { return this->scene; }
+	MapView * getView() { return this->mapView; }
 
 private slots:
     void zoomIn();
@@ -143,7 +168,7 @@ private:
 
 	void resetView();
 
-    QGraphicsView * mapView;
+    MapView * mapView;
     QSlider * zoomSlider;
 	LayoutGraphView * scene;
 	

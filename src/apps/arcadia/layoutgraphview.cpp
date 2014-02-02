@@ -61,9 +61,12 @@
 ******************************************************************************/
 LayoutGraphView::LayoutGraphView(GraphController * c, unsigned int lNumber) :  GraphView(c), moving(false), moved(false), mouseDown(false), selecting(false), supersize(false)
 {
-	this->layout = this->graphModel->getLayout(lNumber);
-
-	if (!this->layout) 	this->layout = this->graphModel->getLayout(0);
+	this->layout = NULL;
+	if (this->graphModel)
+	{
+		this->layout = this->graphModel->getLayout(lNumber);
+		if (!this->layout) 	this->layout = this->graphModel->getLayout(0);
+	}
 
 	QObject::connect(this, SIGNAL(selectionChanged()), this, SLOT(changeVertexSelection()));
 
@@ -75,6 +78,7 @@ LayoutGraphView::LayoutGraphView(GraphController * c, unsigned int lNumber) :  G
 void LayoutGraphView::display(GraphModel * gModel)
 {	
 	GraphView::display(gModel);
+	if (!this->graphModel) this->layout = NULL;
 }
 
 /**********
@@ -265,11 +269,11 @@ void LayoutGraphView::displayVertex(BGL_Vertex v)
 		CloneProperty cp;
 
 		if (clones.size() > 1) cp = isClone;
-		else if (clones.front()->getContainer()->getTypeLabel() == "CloneContainer") cp = midget;
+		else if (clones.front()->getContainer()->getTypeLabel() == "CloneContainer") cp = isMidget;
 		else cp = notClone;
 
 		// for reactions
-		if (clones.front()->rotated) cp = rotated;
+		if (clones.front()->rotated) cp = isRotated;
 		
 		vls = graphLayout->getStyleSheet()->getVertexStyle(this->graphModel->getProperties(v), cp);
 	}
@@ -304,10 +308,8 @@ void LayoutGraphView::displayEdge(BGL_Edge e)
 	BGL_Vertex u = this->graphModel->getSource(e);
 	BGL_Vertex v = this->graphModel->getTarget(e);
 
-	Connector * c = graphLayout->getConnector(u, v);
+	Connector * c = graphLayout->getConnector(u, v, e);
 	if (!c) return; // this can happen when displaying a neighbourhood layout
-
-//	std::cout << graphLayout->getClone(u)->getLabel() << "->" << graphLayout->getClone(v)->getLabel() << std::endl;
 
 	EdgeGraphics* ei = new EdgeGraphics(this, c, els);
 
@@ -356,7 +358,7 @@ void LayoutGraphView::select(std::list<BGL_Vertex> vList)
 * [!] we should check whether the vertex is actually clonable!!!
 ******************************************************************************/
 void LayoutGraphView::mouseDoubleClickEvent ( QGraphicsSceneMouseEvent * mouseEvent ) {
-	QGraphicsScene::mouseDoubleClickEvent(mouseEvent);	
+	QGraphicsScene::mouseDoubleClickEvent(mouseEvent);
 
 	QList<QGraphicsItem*> list = this->selectedItems();
 	if (!list.size())
@@ -398,7 +400,7 @@ void PathwayScene::doubleClickNode(NodeView* node) {
 *****************************************************/
 void LayoutGraphView::changeVertexSelection()
 {
-	// only when the mouse gets released
+	// only triggered when the mouse gets released
 	if (this->mouseDown) { this->selecting = true; return; }
 
 	this->selecting = false;
@@ -408,7 +410,8 @@ void LayoutGraphView::changeVertexSelection()
 	std::list<BGL_Vertex> vList;
 	QList<QGraphicsItem *> list = this->selectedItems();
 
-	for (int i=0; i<list.size(); ++i) {
+	for (int i=0; i<list.size(); ++i)
+	{
 		GraphGraphics * gg = (GraphGraphics *) list.at(i);
 		if (gg->isVertex())
 		{
@@ -464,9 +467,9 @@ void LayoutGraphView::layoutGotUpdated(GraphLayout * gl, bool edgesOnly, bool fa
 			if (clones.size() > 1) continue; // reactions cannot be cloned
 
 			CloneProperty cp = notClone;		
-			if (clones.front()->getContainer()->getTypeLabel() == "CloneContainer") cp = midget; // but they can be part of a clone container
+			if (clones.front()->getContainer()->getTypeLabel() == "CloneContainer") cp = isMidget; // but they can be part of a clone container
 
-			if (clones.front()->rotated) cp = rotated;
+			if (clones.front()->rotated) cp = isRotated;
 
 			VertexStyle * vls = this->layout->getStyleSheet()->getVertexStyle(this->graphModel->getProperties(v), cp);
 		
@@ -541,19 +544,25 @@ void LayoutGraphView::removeVertex(BGL_Vertex v)
 void LayoutGraphView::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
 	QGraphicsScene::mousePressEvent(event);
-	this->mouseDown = true;
+
+	this->mouseDown = true; // Will impact how we consider MouseMove events
+	
+	// We center the viewport on the clicked point
 	float x = event->scenePos().x();
 	float y = event->scenePos().y();		
 	emit(newCenter(QPointF(x, y)));
 
+	// If items are currently selected, then they may start moving along with the mouse (till it gets released)
 	QList<QGraphicsItem *> list = this->selectedItems();
-	this->moving = (list.size() > 0);
+	this->moving = (list.size() > 0); // sets the flag to indicates some objects are selected and will be moving
+	// If not, it may mean the selection will change
 }
 
 // to handle movement
 void LayoutGraphView::mouseMoveEvent (QGraphicsSceneMouseEvent * event ) {
 	QGraphicsScene::mouseMoveEvent(event);
 
+	// When the mouse is down and moving, we center the viewport to follow it
 	if (this->mouseDown)
 	{
 		float x = event->scenePos().x();
@@ -561,46 +570,56 @@ void LayoutGraphView::mouseMoveEvent (QGraphicsSceneMouseEvent * event ) {
 		emit(newCenter(QPointF(x, y)));
 	}
 
+	// Some objects are selected, the mouse move means they have moved
 	if (this->moving)
 	{
-		this->moving = false;
-		this->moved = true;
+		this->moving = false; // not needed anymore
+		this->moved = true; // important to update layout info
 
+		// Since the objects are in the process of moving, we want to perform quick edge updates, regardless of the default option (which we save)
 		this->saveAvoidingValue = this->layout->isAvoiding();
 		this->layout->setAvoiding(false);
 		
-		// creating the edge lists from the vertex list
-		inList.clear();
-		outList.clear();
+		// creating the edge lists from the vertex list (first, we clear the existing list)
+		// These are the edges that needs to be updated when the selected vertices are moving
+		// Edges between moving nodes just need to be translated
+		// While edges between static and moving nodes need to be more fully updated
+		// Other edges are unaffected by a fast update
+		this->inList.clear();
+		this->outList.clear();
 
 		this->getLayout()->inList.clear();
 		this->getLayout()->outList.clear();
 
+		// The edge lists are based on selected items
 		QList<QGraphicsItem *> list = this->selectedItems();
 		for (int i = 0; i < list.size(); ++i)
 		{
 			GraphGraphics *gg = (GraphGraphics*)list.at(i);
-			if (gg->isVertex())
+			if (gg->isVertex()) // item must be a vertex
 			{
 				VertexGraphics *v = (VertexGraphics*)gg;
 				CloneContent *c = v->getCloneContent();
 				std::list<Connector*> cList = c->getOutterConnectors();
+				// For each connector to the corresponding clone
 				for (std::list<Connector *>::iterator it = cList.begin(); it != cList.end(); ++it)
 				{
 					EdgeGraphics * eg = this->getEdgeGraphics(*it);
-					if (!eg)
+					if (!eg) // There must be a corresponding edge graphics
 					{
 						std::cout << "Bug!!!!!!!" << std::endl;
 						std::cout << (*it)->getSource()->getLabel() << "->" << (*it)->getTarget()->getLabel() << std::endl;
+						// throw std::exception(); [!]
 					}
 					else
 					{
+						// if the edge is not already in our list, then it is an edge between a static node and a moving node
 						if (std::find(outList.begin(), outList.end(), eg) == outList.end())
 						{
 							outList.push_back(eg);
 							this->getLayout()->outList.push_back(*it);
 						}
-						else
+						else // if it is already in the list, it is an edge between two moving nodes, and should switch list
 						{
 							outList.remove(eg);
 							inList.push_back(eg);
@@ -612,7 +631,10 @@ void LayoutGraphView::mouseMoveEvent (QGraphicsSceneMouseEvent * event ) {
 			}
 		}
 	}
-
+	
+	// If things have moved, we update the position of nodes in the layout object, then quickly update the position of edges based on this information
+	// The layout update triggers a call to layoutgotupdated = the view is refreshed (fast version)
+	// [!] To be honest, there is no need to update the layout objects at that stage... I could deal with everything internally in the canvas! (calling directly the appropriate egde router if need be)
 	if (this->moved)
 	{	
 		this->updateMovingVertices();
@@ -620,35 +642,45 @@ void LayoutGraphView::mouseMoveEvent (QGraphicsSceneMouseEvent * event ) {
 	}	
 }
 
-void LayoutGraphView::mouseReleaseEvent (QGraphicsSceneMouseEvent * event ) {
+void LayoutGraphView::mouseReleaseEvent (QGraphicsSceneMouseEvent * event ) 
+{
 	QGraphicsScene::mouseReleaseEvent(event);
 
+	// we switch back to a normal mode
 	this->mouseDown = false;
+
+	// we center the viewport on the mouse last position
 	float x = event->scenePos().x();
 	float y = event->scenePos().y();		
 	emit(newCenter(QPointF(x, y)));
 	
+	// some items have been selected and moved around before the mouse was released
 	if (this->moved)
 	{
+		// we go back to normal edge avoiding mode now that manual movement has stopped
 		this->layout->setAvoiding(this->saveAvoidingValue);
 	
-		// [!] suboptimal? Maybe I should only update these when the selection actually changes?
-		inList.clear();
-		outList.clear();
+		// [!] suboptimal? Maybe I should only update these when the selection actually changes? (as I am losing all the information on edges around the selection...)
+		this->inList.clear();
+		this->outList.clear();
 
 		this->getLayout()->inList.clear();
 		this->getLayout()->outList.clear();
 
+		// we update the position of the model nodes, as well as the edges (slower version), and refresh all the views in consequence
 		this->updateMovingVertices();
 		this->updateLayout(this->layout, true);
 
-		this->moved = false;
+		this->moved = false; // we're done dealing with the selection move
 	}
 	
+	// In case it didn't get flagged off yet
 	if (this->moving) this->moving = false;
 	
+	// deal with the delayed selection action now
 	if (this->selecting) this->changeVertexSelection();
-//	this->update();
+
+	this->update();
 }
 
 void LayoutGraphView::resize()
@@ -676,14 +708,16 @@ void LayoutGraphView::resize()
 
 void LayoutGraphView::updateMovingVertices()
 {
+	// for each selected item (which must have been moving recently, since we call this method)
 	QList<QGraphicsItem *> list = this->selectedItems();
 	for (int i = 0; i < list.size(); ++i)
 	{
 		GraphGraphics *gg = (GraphGraphics*)list.at(i);
 		if (gg->isVertex())
 		{
+			// we make sure the object is a vertex graphics
 			VertexGraphics *v = (VertexGraphics*)gg;
-			v->updateClonePosition();
+			v->updateClonePosition(); // we update the position of the corresponding clone in the layout object
 		}
 	}
 }

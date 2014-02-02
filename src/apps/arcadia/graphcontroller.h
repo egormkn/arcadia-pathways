@@ -38,6 +38,7 @@
 // local MVC club
 #include "graphmodel.h"
 class GraphView;
+class GraphWindow;
 
 class GraphLoader;
  
@@ -57,8 +58,10 @@ class GraphLoader;
 class GraphController
 {
 public:
-	GraphController();
+	GraphController(std::string fileName = "");
 	virtual ~GraphController();
+	
+	void setGraphWindow(GraphWindow * w);
 	
 	void addView(GraphView * view);
 	void removeView(GraphView * view);
@@ -74,8 +77,10 @@ public:
 	void toggleCloning(BGL_Vertex v, GraphLayout * gl, CloneContent * c);
 	void updateLayout(GraphLayout * gl, bool edgesOnly, bool fast);
 	void switchView(std::list<BGL_Vertex> vList);
+/*
 	void createView(std::list<BGL_Vertex> vList);
 	void expandView(std::list<BGL_Vertex> vList, GraphLayout * gl);
+*/
 	void selectLayout(GraphLayout * gl, GraphView * caller);
 	void moveToLayout(GraphLayout * gl, int i);
 
@@ -90,6 +95,15 @@ public:
 	std::list< std::string > getActions();
 	void executeAction(std::string a);
 
+	bool isEmpty() { return (this->_graphModel == NULL); }
+
+	GraphModel * graphModel() { return this->_graphModel; }
+
+	std::list<GraphView*> getViews() { return this->_graphViews; }
+
+	void undo();
+	bool getUndoFlag() { return this->undoFlag; }
+
 protected:
 	GraphModel * _graphModel;
 	std::list<GraphView*> _graphViews;
@@ -97,6 +111,18 @@ protected:
 	virtual void getGraphModel(std::string filename);
 
 	std::list<BGL_Vertex> currentSelection;
+	
+	void selfSelect(std::list<BGL_Vertex> vList, GraphView * caller);
+	void selfToggleCloning(BGL_Vertex v, GraphLayout * gl, CloneContent * c);
+	void selfUpdateLayout(GraphLayout * gl, bool edgesOnly, bool fast);
+	void selfSwitchView(std::list<BGL_Vertex> vList);
+
+	void saveUndo();
+	bool undoFlag;
+	bool moving;
+	int layoutNumber;
+
+	GraphWindow * window;
 
 public:
 	virtual std::string getImportFileTypes();

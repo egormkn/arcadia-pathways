@@ -45,6 +45,8 @@ class CompartmentContainer: public ContainerContent
 {
 public:
 	CompartmentContainer(GraphLayout *l, ContainerContent * c = NULL, Compartment * comp = NULL);	
+	~CompartmentContainer();
+
 	std::string getReference();
 	
 private:

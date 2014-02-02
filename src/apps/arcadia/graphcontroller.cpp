@@ -35,6 +35,7 @@
 #include <iostream>
 
 // local
+#include "graphwindow.h"
 #include "graphview.h"
 #include "graphmodel.h"
 #include "graphloader.h"
@@ -44,7 +45,16 @@
 /************************************************************************
 * Constructor: sets the graphModel to NULL and the busy status to false *
 *************************************************************************/
-GraphController::GraphController() : _graphModel(NULL), busy(false) {}
+GraphController::GraphController(std::string fileName) : _graphModel(NULL), busy(false), undoFlag(false), moving(false), layoutNumber(0), window(NULL)
+{
+	if (fileName != "") this->load(fileName);
+}
+
+void GraphController::setGraphWindow(GraphWindow * w)
+{
+	this->window = w;
+	if (this->window) this->window->enableUndo(this->undoFlag);
+}
 
 /*************
 * Destructor *
@@ -54,6 +64,8 @@ GraphController::GraphController() : _graphModel(NULL), busy(false) {}
 ****************************************/
 GraphController::~GraphController()
 {
+	this->save("ArcadiaLastDocument.xml");
+
 	this->close();
 	 // the views get removed from their Controller when deleted, so we need a copy of the list to process through
 	std::list<GraphView*> views = this->_graphViews;
@@ -63,12 +75,12 @@ GraphController::~GraphController()
 /****************************************************
 * getFileName: returns the name of the Model's file *
 *****************************************************/
-std::string GraphController::getFileName() { return this->_graphModel->getFileName(); }
+std::string GraphController::getFileName() { if (this->_graphModel) return this->_graphModel->getFileName(); else return ""; }
 
 /*******************************************
 * getModelTitle: returns the Model's title *
 ********************************************/
-std::string GraphController::getModelTitle() { return this->_graphModel->getTitle(); }
+std::string GraphController::getModelTitle() { if (this->_graphModel) return this->_graphModel->getTitle(); else return ""; }
 
 /*********************************************************************************************
 * addView: adds the view to the list [!] doesn't check if the View points at that controller *
@@ -76,7 +88,7 @@ std::string GraphController::getModelTitle() { return this->_graphModel->getTitl
 void GraphController::addView(GraphView * view)
 {
 	this->_graphViews.push_back(view);
-	view->display(this->_graphModel);
+	if (this->_graphModel) view->display(this->_graphModel);
 }
 
 /*****************************************************************************************************
@@ -120,13 +132,15 @@ void GraphController::load(std::string filename)
 *********************************************************************************************/
 void GraphController::save(std::string filename)
 {
+	if (!this->_graphModel) return;
+
 	this->_graphModel->save(filename);
 
 	// + mass screengrab export
 	for (std::list<GraphView*>::iterator it = this->_graphViews.begin(); it != this->_graphViews.end(); ++it)
 	{
 		(*it)->exportGraphics(filename);
-	}	
+	}
 }
 
 /********
@@ -138,6 +152,13 @@ void GraphController::save(std::string filename)
 *****************************************************/
 void GraphController::close()
 {
+	// Because deleting the graphmodel requires waiting for its connector layout manager threads
+	// and in the mean time the view can't display half deleted data, obviously
+	for (std::list<GraphView*>::iterator it = this->_graphViews.begin(); it != this->_graphViews.end(); ++it)
+	{
+		(*it)->display(NULL);
+	}
+
 	if (this->_graphModel) { delete this->_graphModel; }
 	this->_graphModel = NULL;
 }
@@ -152,19 +173,23 @@ void GraphController::select(std::list<BGL_Vertex> vList, GraphView * caller)
 {
 	if (this->busy) return;
 	this->busy = true;
-		
-	this->currentSelection = vList;
+	this->selfSelect(vList, caller);
+	this->busy = false;
+}
 
+void GraphController::selfSelect(std::list<BGL_Vertex> vList, GraphView * caller)
+{	
+	this->currentSelection = vList;
 	for (std::list<GraphView*>::iterator it = this->_graphViews.begin(); it != this->_graphViews.end(); ++it)
 	{
 		if (*it != caller) (*it)->select(vList);
 	}
-
-	this->busy = false;
 }
 
 void GraphController::selectLayout(GraphLayout * gl, GraphView * caller)
 {
+	this->layoutNumber = this->graphModel()->getNumber(gl);
+
 	for (std::list<GraphView*>::iterator it = this->_graphViews.begin(); it != this->_graphViews.end(); ++it)
 	{
 		if (*it != caller) (*it)->selectLayout(gl);
@@ -173,7 +198,7 @@ void GraphController::selectLayout(GraphLayout * gl, GraphView * caller)
 
 void GraphController::moveToLayout(GraphLayout *gl, int i)
 {
-	this->selectLayout(this->_graphModel->getNextLayout(gl, i), NULL);
+	if (this->_graphModel) this->selectLayout(this->_graphModel->getNextLayout(gl, i), NULL);
 }
 
 /****************
@@ -188,6 +213,16 @@ void GraphController::toggleCloning(BGL_Vertex v, GraphLayout * gl, CloneContent
 {
 	if (this->busy) return;
 	this->busy = true;
+
+	this->saveUndo();
+	this->selfToggleCloning(v, gl, c);
+
+	this->busy = false;	
+}
+
+void GraphController::selfToggleCloning(BGL_Vertex v, GraphLayout * gl, CloneContent * c)
+{
+	if (!this->_graphModel) return;
 	
 	this->_graphModel->toggleCloning(v, gl, c);
 
@@ -196,58 +231,75 @@ void GraphController::toggleCloning(BGL_Vertex v, GraphLayout * gl, CloneContent
 		(*it)->cloningGotToggled(v, gl);
 	}
 
-	this->busy = false;
-	
 	std::list<BGL_Vertex> vList;
 	vList.push_back(v);
-	this->select(vList, NULL);
+	this->selfSelect(vList, NULL);
 }
 
 void GraphController::updateLayout(GraphLayout * gl, bool edgesOnly, bool fast)
 {
 	if (this->busy) return;
 	this->busy = true;
-	
+
+	// Before a full update
+	if (!edgesOnly) this->saveUndo();
+// Too time consuming, need smarter Undo (just save what changed... = nodes & coords)
+/*
+	else // manual move
+	{
+		// At the start of a move, we save the initial position
+		if (fast && !this->moving) { this->saveUndo(); this->moving = true; }
+		// after that, we don't save intermediate moves
+		
+		if (!fast) this->moving = false; // end of move, liberate the flag for next move
+	}
+*/
+
+	this->selfUpdateLayout(gl, edgesOnly, fast);
+	this->busy = false;
+}
+
+void GraphController::selfUpdateLayout(GraphLayout * gl, bool edgesOnly, bool fast)
+{
+	if (!this->_graphModel) return;
+
 	this->_graphModel->updateLayout(gl, edgesOnly, fast);
 
 	for (std::list<GraphView*>::iterator it = this->_graphViews.begin(); it != this->_graphViews.end(); ++it)
 	{
 		(*it)->layoutGotUpdated(gl, edgesOnly, fast);
 	}
-
-	this->busy = false;
 }
 
 void GraphController::switchView(std::list<BGL_Vertex> vList)
 {
 	if (this->busy) return;
 	this->busy = true;
-
-	GraphLayout * layout = this->_graphModel->addLayout(vList);
-		
-	// created a new layout
-	if (!layout)
-	{
-	
-		for (std::list<GraphView*>::iterator it = this->_graphViews.begin(); it != this->_graphViews.end(); ++it)
-		{
-			(*it)->layoutGotAdded();
-		}
-	}
-	// selecting the existing layout
-	else
-	{
-		this->selectLayout(layout, NULL);
-	}
-
+	this->saveUndo();
+	this->selfSwitchView(vList);
 	this->busy = false;
 }
 
+void GraphController::selfSwitchView(std::list<BGL_Vertex> vList)
+{
+	if (!this->_graphModel) return;
+	GraphLayout * layout = this->_graphModel->addLayout(vList);
+		
+	// created a new layout
+	if (!layout) for (std::list<GraphView*>::iterator it = this->_graphViews.begin(); it != this->_graphViews.end(); ++it)
+	{
+		(*it)->layoutGotAdded();
+	}
+	// selecting the existing layout
+	else this->selectLayout(layout, NULL);
+}
 
-
+/*
 void GraphController::createView(std::list<BGL_Vertex> vList)
 {
 	if (this->busy) return;
+	if (!this->_graphModel) return;
+
 	this->busy = true;
 	
 	if (this->_graphModel->addLayout(vList, false))
@@ -260,10 +312,13 @@ void GraphController::createView(std::list<BGL_Vertex> vList)
 
 	this->busy = false;
 }
-
+*/
+/*
 void GraphController::expandView(std::list<BGL_Vertex> vList, GraphLayout * gl)
 {
 	if (this->busy) return;
+	if (!this->_graphModel) return;
+
 	this->busy = true;
 
 	this->_graphModel->expandLayout(vList, gl);
@@ -276,6 +331,7 @@ void GraphController::expandView(std::list<BGL_Vertex> vList, GraphLayout * gl)
 
 	this->busy = false;
 }
+*/
 
 void GraphController::getGraphModel(std::string filename)
 {
@@ -294,6 +350,8 @@ std::string GraphController::getExportFileTypes()
 
 void GraphController::toggleContainerVisibility()
 {
+	if (!this->_graphModel) return;
+
 	this->_graphModel->getStyleSheet()->toggleContainerVisibility();
 	for (std::list<GraphView*>::iterator it = this->_graphViews.begin(); it != this->_graphViews.end(); ++it)
 	{
@@ -303,16 +361,40 @@ void GraphController::toggleContainerVisibility()
 
 void GraphController::toggleAvoidingEdges()
 {
+	if (this->busy) return;
+	if (!this->_graphModel) return;
+
+	this->busy = true;
 	this->_graphModel->toggleAvoidingEdges();
-	
-	this->updateLayout(NULL, true, false);	
+	this->selfUpdateLayout(NULL, true, false);	
+	this->busy = false;
 }
 
 void GraphController::destroyLayout()
 {
 	if (this->busy) return;
+
+	this->saveUndo();
+
+	if (!this->_graphModel) return;
+
 	this->busy = true;
 
+	GraphLayout * gl = this->_graphModel->getCurrentLayout();
+
+	if (gl && (this->_graphModel->layoutNumber() > 1) ) // the visible layout will be destroyed
+	{
+		for (std::list<GraphView*>::iterator it = this->_graphViews.begin(); it != this->_graphViews.end(); ++it)
+		{
+			(*it)->layoutGotRemoved(gl);
+		}
+
+		this->_graphModel->destroyLayout(gl);
+	}
+
+// old version - we need the views to relinquish control over the layout BEFORE it gets destroyed,
+// as layout destruction can take a non negligeable time if edge routing is on
+/*
 	GraphLayout * gl = this->_graphModel->destroyLayout();
 
 	if (gl)
@@ -322,23 +404,31 @@ void GraphController::destroyLayout()
 			(*it)->layoutGotRemoved(gl);
 		}
 	}
-	
+*/
 	this->busy = false;
 }
 
 void GraphController::arrangeSelection()
 {
+	if (this->busy) return;
+	this->busy = true;
+
+	this->saveUndo();
+
 	std::list<BGL_Vertex> vList = this->currentSelection;
 	for (std::list<BGL_Vertex>::iterator it = vList.begin(); it != vList.end(); ++it)
 	{
-		this->toggleCloning(*it, NULL, NULL);
+		this->selfToggleCloning(*it, NULL, NULL);
 	}
+
+	this->busy = false;
 }
 
 void GraphController::newLayout()
 {
+	this->saveUndo();
 	std::list<BGL_Vertex> vList = this->currentSelection;
-	this->switchView(vList);
+	this->selfSwitchView(vList);
 }
 
 std::list< std::string > GraphController::getActions()
@@ -360,4 +450,38 @@ void GraphController::executeAction(std::string a)
 
 	if (a == "C")
 		std::cout << "tctc" << std::endl;		
+}
+
+void GraphController::undo()
+{
+	if (!this->graphModel()) return;
+
+	if(this->undoFlag)
+	{
+		int n = this->layoutNumber;
+
+		std::string saveName = this->graphModel()->getFileName();
+		this->load("ArcadiaLastDocument.xml");
+		this->graphModel()->setFileName(saveName);
+
+		if (GraphLayout * gl = this->graphModel()->getLayout(n))
+		{
+			this->selectLayout(gl, NULL);
+		}
+
+		this->undoFlag = false;
+		if (this->window) this->window->enableUndo(this->undoFlag);
+	}
+}
+
+void GraphController::saveUndo()
+{
+	if (!this->graphModel()) return;
+
+	std::string saveName = this->graphModel()->getFileName();
+	this->save("ArcadiaLastDocument.xml");
+	this->graphModel()->setFileName(saveName);
+
+	this->undoFlag = true;
+	if (this->window) this->window->enableUndo(this->undoFlag);
 }

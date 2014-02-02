@@ -34,21 +34,44 @@
 #define CONNECTORLAYOUTMANAGER_H
 
 #include <list>
+#include <libavoid/libavoid.h>
+
+#include <QThread>
 
 class Connector;
 class CloneContent;
-class GraphModel;
+class GraphLayout;
+class QProgressDialog;
 
 /*************************
 * ConnectorLayoutManager *
 **************************/
-class ConnectorLayoutManager
+class ConnectorLayoutManager : public QThread
 {
 public:
-	ConnectorLayoutManager(GraphModel * gm) : graphModel(gm) {}
-	void layout(std::list<Connector*> connectors, std::list<CloneContent*> cloneDescriptors);
+	ConnectorLayoutManager(GraphLayout * gl);
+	~ConnectorLayoutManager();
+	void layout();
+
 protected:
-	GraphModel * graphModel;
+	int totalCleanUpSteps;
+	int currentCleanUpSteps;
+
+	void run();
+	
+	void init();
+	void process();
+	void clear();
+
+	GraphLayout * graphLayout;
+	std::list<Connector*> connectors;
+	std::list<CloneContent*> cloneDescriptors;
+
+	Avoid::Router * router;
+	std::map< CloneContent *, Avoid::ShapeRef * > myShapeList;
+	std::map< Connector *, Avoid::ConnRef * > myConnList;	
+
+	QProgressDialog * pd;
 };
 
 #endif

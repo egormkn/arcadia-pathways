@@ -21,6 +21,9 @@
 # 
 ############################################################################
 
+# When I will properly use webservices
+# include(qtextension/qtsoap/src/qtsoap.pri)
+
 TEMPLATE = app
 TARGET = arcadia
 
@@ -60,7 +63,7 @@ win32 {
 	EXTERNALLIBS += -LC:\sbml\libsbml-4.0.0\install\lib -lsbml
 	EXTERNALLIBS += -LC:\libxml\libxml2-2.7.3\installdir\lib -lxml2
 } else {
-	BOOSTPATH = /opt/local/include/boost-1_35
+	BOOSTPATH = /opt/local/include/boost-1_35 /opt/local/include
 	GRAPHVIZPATH = /usr/local/include/graphviz
 	LIBSBMLPATH = /usr/local/include/sbml
 	unix {
@@ -202,6 +205,8 @@ HEADERS += \
 			$$PATHWAYPATH/speciesvertexproperty.h\
 			$$PATHWAYPATH/reactionvertexproperty.h\
 		$$PATHWAYPATH/ontologycontainer.h\
+# When I will properly use web services
+#		$$PATHWAYPATH/webservicehandler.h\
 		
 # PATHWAY SOURCES ################################################################################
 
@@ -226,6 +231,8 @@ SOURCES += \
 			$$PATHWAYPATH/speciesvertexproperty.cpp\
 			$$PATHWAYPATH/reactionvertexproperty.cpp\
 		$$PATHWAYPATH/ontologycontainer.cpp\
+# When I will properly use web services
+#		$$PATHWAYPATH/webservicehandler.cpp\
 
 # MAIN SOURCES ###################################################################################
 

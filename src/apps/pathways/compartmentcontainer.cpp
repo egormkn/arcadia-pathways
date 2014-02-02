@@ -31,6 +31,7 @@
  */
 
 #include "compartmentcontainer.h"
+#include "arcadia/graphlayout.h"
 
 #include <sbml/SBMLTypes.h>
 
@@ -38,6 +39,12 @@ CompartmentContainer::CompartmentContainer(GraphLayout *l, ContainerContent * c,
 {
 	this->label = comp->getName();
 	if (this->label == "") this->label = comp->getId();
+	this->layout->map(this);	
 }
 	
 std::string CompartmentContainer::getReference() { return compartment->getId(); }
+
+CompartmentContainer::~CompartmentContainer()
+{	
+	this->layout->unMap(this);
+}

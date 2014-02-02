@@ -85,8 +85,10 @@ protected:
 	void toggleCloning(BGL_Vertex v, GraphLayout * gl = NULL, CloneContent * c = NULL);
 	void updateLayout(GraphLayout * gl = NULL, bool edgesOnly = false, bool fast = false);
 	void switchView(std::list<BGL_Vertex> vList);
+/*
 	void createView(std::list<BGL_Vertex> vList);
 	void expandView(std::list<BGL_Vertex> vList, GraphLayout * gl);
+*/
 };
 
 #endif

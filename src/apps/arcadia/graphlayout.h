@@ -101,9 +101,9 @@ public:
 	std::list< CloneContent * > getCloneContents();
 
 	// Connector
-	Connector * connect(BGL_Vertex u, BGL_Vertex v);
-	Connector * connectClones(CloneContent * u, CloneContent * v);
-	Connector * getConnector(BGL_Vertex u, BGL_Vertex v);	
+	Connector * connect(BGL_Edge e);
+	Connector * connectClones(CloneContent * u, CloneContent * v, BGL_Edge e);
+	Connector * getConnector(BGL_Vertex u, BGL_Vertex v, BGL_Edge e);	
 	std::list< Connector * > getConnectors();
 
 	// cloning/branching actions
@@ -125,19 +125,28 @@ public:
 	void toggleAvoiding() { this->avoiding = !this->avoiding; }
 	void setAvoiding(bool v) { this->avoiding = v; }
 
+/*
 	void expand(std::list<BGL_Vertex> vList);
+*/
+/*
 	void fillGaps(std::list<CloneContent*> roots);
+*/
 
 	std::string name;
 	
 	std::list<Connector *> inList;
 	std::list<Connector *> outList;
 
+	void map(ContainerContent * container);
+	void unMap(ContainerContent * container);
+
 private:
 	bool visible;
 	bool avoiding;
 
 	std::list<CloneContent*> buildNeighbours(CloneContent * clone, std::list<CloneContent *> neighbourhood, bool isVisible);
+	std::list<CloneContent*> addNeighbourFromEdge(BGL_Edge edge, CloneContent * clone,
+		std::list<CloneContent *> neighbourhood, bool incoming, bool isVisible);
 
 	GraphModel * graphModel;
 
@@ -151,12 +160,14 @@ private:
 	std::map< BGL_Vertex, std::list<CloneContent*> > cloneMap;
 	std::list< Connector * > connectorList;
 	
-	CloneContent * findClone (BGL_Vertex vertex, BGL_Vertex neighbour);
+	CloneContent * findClone (BGL_Edge edge, bool isSource);
 	
 	ConnectorLayoutManager * connectorLayoutManager;
 	
 //	StyleSheet * styleSheet;
 	StyleSheet * layoutStyleSheet;
+	
+	std::map< std::string, ContainerContent* > refToContainer;
 };
 
 #endif

@@ -37,6 +37,12 @@
 
 #include <iostream>
 
+bool Content::setAsCore()
+{
+	if (this->getContainer()) return this->getContainer()->setCore(this);
+	else return false;
+}
+
 void Content::setPosition(int x, int y)
 {
 	if (container) this->container->setUpdateFlag();
@@ -45,7 +51,11 @@ void Content::setPosition(int x, int y)
 /*****************************************************************
 * Constructor: sets the id to nothing then sets up the container *
 *****************************************************************/
-Content::Content(GraphLayout *l, ContainerContent * c) : layout(l), cId(""), container(NULL), hidden(false) { this->setContainer(c); }
+Content::Content(GraphLayout *l, ContainerContent * c)
+	: layout(l), cId(""), container(NULL), hidden(false)
+{
+	this->setContainer(c);
+}
 
 /*****************************************
 * Destructor: sets the Container to NULL *
@@ -107,7 +117,7 @@ int Content::getLevel()
 
 ContainerContent * Content::CommonAncestor(Content * c1, Content * c2)
 {
-	ContainerContent * p1 = c1->getContainer();	
+	ContainerContent * p1 = c1->getContainer();
 	ContainerContent * p2 = c2->getContainer();
 		
 	if (p1 == p2) return p1;

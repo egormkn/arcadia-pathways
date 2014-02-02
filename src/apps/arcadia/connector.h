@@ -36,6 +36,7 @@
 // STL for std::pair
 #include <utility>
 #include <list>
+#include <iostream>
 
 // local
 #include "clonecontent.h"
@@ -61,7 +62,7 @@ class ContainerContent;
 class Connector
 {
 public:
-	Connector(CloneContent * s, CloneContent * t);
+	Connector(CloneContent * s, CloneContent * t, BGL_Edge e);
 	~Connector();
 
 	CloneContent * getNeighbour(CloneContent * c);
@@ -88,8 +89,12 @@ public:
 
 	void setSourceConnection(ConnectionType ct) { this->sourceConnection = ct; this->quickUpdate(); }
 	void setTargetConnection(ConnectionType ct) { this->targetConnection = ct; this->quickUpdate(); }
+
+	BGL_Edge getEdge() { return this->edge; }
 	
-private:
+private:	
+	BGL_Edge edge;
+
 	CloneContent * source;
 	CloneContent * target;
 	

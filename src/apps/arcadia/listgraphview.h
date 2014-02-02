@@ -79,10 +79,12 @@ private slots:
 	void changeVertexSelection();
 	void doubleClickVertex(QTreeWidgetItem * item, int column);
 	void switchToLocalView();
+/*	
 	void createNewView();
 	void expandCurrentView();
 	void removeFromView();
 	void moveToNewView();
+*/
 	void executeAction(QAction * action);
 	void updateTree();
 	

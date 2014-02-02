@@ -96,9 +96,28 @@ void SBMLGraphLoader::load(std::string fName)
 
 	if (this->document->getNumErrors() > 0)
 	{
-		std::cerr << "Encountered the following SBML errors:" << std::endl;
+		std::cerr << "LibSBML encountered the following SBML errors:" << std::endl;
 		this->document->printErrors(std::cerr);
-		throw std::exception();
+		
+		std::ostringstream stream;
+		stream << "LibSBML encountered the following SBML errors:" << std::endl;
+		stream << std::endl;
+		stream << "----------------------------------------------" << std::endl;
+		stream << std::endl;
+		this->document->printErrors(stream);
+		stream << "----------------------------------------------" << std::endl;
+
+		SBMLErrorLog * errors = document->getErrorLog();
+		for (int i = 0; i < errors->getNumErrors(); ++i)
+		{
+			if (errors->getError(i)->getErrorId() == InvalidIdSyntax)
+			{
+				stream << "\nSBML identifiers can only contain letters, digits and/or underscore symbols. ";
+				stream << "They must start with either a letter or an underscore symbol." << std::endl;				
+			}
+		}
+
+		throw std::runtime_error(stream.str().c_str());
 	}
 }
 

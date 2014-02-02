@@ -52,6 +52,22 @@
 #include "graphlayout.h"
 #include "graphcontroller.h"
 
+LayoutGraphView * ModelGraphView::getLayoutView(int i)
+{
+	if (i >= this->tabWidget->count()) return NULL;
+	TabbedWidget * w = (TabbedWidget*)this->tabWidget->widget(i);
+	if (!w) return NULL;
+	return w->getScene();
+}
+
+MapView * ModelGraphView::getLayoutWidget(int i)
+{
+	if (i >= this->tabWidget->count()) return NULL;
+	TabbedWidget * w = (TabbedWidget*)this->tabWidget->widget(i);
+	if (!w) return NULL;
+	return w->getView();
+}
+
 /**************
 * Constructor *
 ***************
@@ -76,8 +92,8 @@ ModelGraphView::ModelGraphView(GraphController * c,  bool zoomEnabled, QWidget *
 	QObject::connect(this->tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(layoutDestroyed()));
 
 	TabbedWidget * tw = new TabbedWidget(NULL, this->zoom);
-	this->tabWidget->addTab(tw, QString("Empty"));
-	
+	this->tabWidget->addTab(tw, QString("No Layout"));
+
 	topLayout->addWidget(this->tabWidget);
     this->setLayout(topLayout);
 		
@@ -108,8 +124,6 @@ void ModelGraphView::display(GraphModel *gModel)
 {
 	GraphView::display(gModel);
 
-	if (!this->graphModel) return;
-
 	// resetting stuff
 // /*
 	this->resetting = true;
@@ -123,6 +137,8 @@ void ModelGraphView::display(GraphModel *gModel)
 
 	this->resetting = false;
 // */
+
+	if (!this->graphModel) return;
 
 /*
 	TabbedWidget * tw = (TabbedWidget*)(this->tabWidget->widget(0));
@@ -267,7 +283,7 @@ TabbedWidget::TabbedWidget(QWidget * parent, bool zoomEnabled): QWidget(parent),
     QVBoxLayout *topLayout = new QVBoxLayout();
 	topLayout->setContentsMargins (0,0,0,0);
 	
-	this->mapView = new QGraphicsView();
+	this->mapView = new MapView();
 	this->mapView->setRenderHint(QPainter::Antialiasing, false);
 	this->mapView->setDragMode(QGraphicsView::RubberBandDrag);
 	this->mapView->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
@@ -284,7 +300,7 @@ TabbedWidget::TabbedWidget(QWidget * parent, bool zoomEnabled): QWidget(parent),
 	QToolBar * toolBar = new QToolBar(this);
 	QAction * action;
 
-	action = this->createAction("&Route Edges", "Ctrl+R", "Toggles automatic edge routing");
+	action = this->createAction("&Route Edges", "Ctrl+R", "Toggles automatic edge routing on the current view");
 	QObject::connect(action, SIGNAL( triggered() ), this, SLOT( toggleAvoidingEdges() ));
 	action->setCheckable(true);
 	action->setChecked(false);
@@ -292,37 +308,37 @@ TabbedWidget::TabbedWidget(QWidget * parent, bool zoomEnabled): QWidget(parent),
 
 	toolBar->addSeparator();
 
-	action = this->createAction("Layout Modifiers", "", "");
+	action = this->createAction("Layout Modifiers", "", "Toggles cloning on all modifiers on the current view");
 	QObject::connect(action, SIGNAL(triggered()), this, SLOT( cloneModifiers() ));	
 	toolBar->addAction(action);
 
-	action = this->createAction("Arrange Selection", "", "");
+	action = this->createAction("Arrange Selection", "", "Toggles cloning or branching on all selected species or reactions in the current view");
 	QObject::connect(action, SIGNAL(triggered()), this, SLOT( arrangeSelection() ));	
 	toolBar->addAction(action);
 
 	toolBar->addSeparator();
 
-	action = this->createAction("|<", "", "");
+	action = this->createAction("|<", "", "Displays first view");
 	QObject::connect(action, SIGNAL(triggered()), this, SLOT( farLeft() ));	
 	toolBar->addAction(action);
 
-	action = this->createAction("<", "", "");
+	action = this->createAction("<", "", "Displays previous view");
 	QObject::connect(action, SIGNAL(triggered()), this, SLOT( left() ));	
 	toolBar->addAction(action);
 
-	action = this->createAction(">", "", "");
+	action = this->createAction(">", "", "Displays next view");
 	QObject::connect(action, SIGNAL(triggered()), this, SLOT( right() ));	
 	toolBar->addAction(action);
 
-	action = this->createAction(">|", "", "");
+	action = this->createAction(">|", "", "Displays last view");
 	QObject::connect(action, SIGNAL(triggered()), this, SLOT( farRight() ));	
 	toolBar->addAction(action);
 
-	action = this->createAction("Select layout", "", "");
-	QObject::connect(action, SIGNAL(triggered()), this, SLOT( newLayout() ));	
+	action = this->createAction("Select layout", "", "Creates a local view of the current selection (or displays the already existing view)");
+	QObject::connect(action, SIGNAL(triggered()), this, SLOT( newLayout() ));
 	toolBar->addAction(action);
 
-	action = this->createAction("Update layout", "", "");
+	action = this->createAction("Update layout", "", "Applies automatic layout rules to the current view");
 	QObject::connect(action, SIGNAL(triggered()), this, SLOT( updateLayout() ));	
 	toolBar->addAction(action);
 

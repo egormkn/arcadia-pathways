@@ -75,7 +75,9 @@ class ContainerContent: public Content
 {
 public:
 	ContainerContent(GraphLayout *l, ContainerContent *c = NULL, std::string t = "GenericContainer", std::string l = "");
-	~ContainerContent();
+	virtual ~ContainerContent();
+
+	bool setCore(Content * c);
 
 	int labelWidth();
 	int labelHeight();
@@ -120,6 +122,8 @@ public:
 	void setUpdateFlag();
 
 	std::string stringVersion();
+
+	static ContainerContent * CommonAncestor(ContainerContent * c1, ContainerContent * c2);
 
 protected:		
 	std::string label;

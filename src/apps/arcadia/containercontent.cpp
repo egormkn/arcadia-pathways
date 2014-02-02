@@ -100,7 +100,7 @@ void ContainerContent::setContainer(ContainerContent *c)
 **************************/
 ContainerContent::~ContainerContent()
 {
-	std::list<Content*> cList = this->getChildren(); // we will destroy the children, hence remove them, so we need to browse thoug a copy of the list
+	std::list<Content*> cList = this->getChildren(); // we will destroy the children, hence remove them, so we need to browse through a copy of the list
 	for (std::list<Content*>::iterator it = cList.begin(); it != cList.end(); ++it) delete *it;
 
 	delete this->layoutManager;
@@ -324,6 +324,27 @@ int ContainerContent::height(bool withMargin) { return this->bottom(withMargin) 
 * Content management                                                   *
 ***********************************************************************/
 
+// sets an existing content as the core (if not existing content, return false)
+bool ContainerContent::setCore(Content * c)
+{
+	if ( (!this->has(c)) || (!c->hasContainer(this)) ) return false;
+	this->core = c;
+	return true;
+}
+
+// very similar to Content::CommonAncestor, except that for the comparison we don't look at parents
+// but the container themselves directly
+ContainerContent * ContainerContent::CommonAncestor(ContainerContent * c1, ContainerContent * c2)
+{
+	if (c1 == c2) return c1;
+	else
+	{
+		int diff = c1->getLevel() - c2->getLevel();
+		if (diff > 0)	return ContainerContent::CommonAncestor(c1->getContainer(), c2);
+		else			return ContainerContent::CommonAncestor(c1, c2->getContainer());
+	}
+}
+
 /******
 * add *
 *******
@@ -335,6 +356,11 @@ void ContainerContent::add(Content *c, bool asCore)
 	if (asCore) this->core = c;
 	if (!this->has(c)) this->children.push_back(c);
 	if (!c->hasContainer(this)) c->setContainer(this);
+
+	if (this->getContentLayoutStrategy() == Triangle)
+	{
+		std::cerr << "triangle addition " << c->getId() << " " << c->getLabel() << std::endl;
+	}
 }
 
 void ContainerContent::add(std::list<Content *> cList)
@@ -358,6 +384,11 @@ void ContainerContent::remove(Content *c)
 	this->children.remove(c);
 	c->setContainer(NULL);
 	if (c == this->core) this->core = NULL; // what is the new core, though???
+	
+	if (this->getContentLayoutStrategy() == Triangle)
+	{
+		std::cerr << "triangle removal " << c->getId() << " " << c->getLabel() << std::endl;
+	}
 }
 	
 /******

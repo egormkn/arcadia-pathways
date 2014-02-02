@@ -40,6 +40,7 @@
 #include <sbml/SBMLTypes.h> // [!] because I didn't encapsulate the BiolQualifierType_t bit
 
 class OntologyContainer;
+class PathwayGraphModel;
 
 //class SBase;
 
@@ -49,7 +50,8 @@ class OntologyContainer;
 class PathwayVertexProperty : public VertexProperty
 {
 public:
-	PathwayVertexProperty(SBase * b);
+	PathwayVertexProperty(SBase * b, PathwayGraphModel * m);
+
 	virtual std::string getLabel();
 	std::string getId();
 
@@ -63,9 +65,10 @@ public:
 
 protected:
 	SBase * base;
+	PathwayGraphModel * model;
 	
 	std::list< std::pair< BiolQualifierType_t, std::string > > getBioURIs();
-	std::list< std::string > getBioURIs(BiolQualifierType_t bt);
+	std::list< std::string > getBioURIs(BiolQualifierType_t bt, bool includeURLs = false);
 };
 
 #endif

@@ -150,15 +150,15 @@ int CloneContent::x(ConnectionType ct)
 		
 	case side1:
 		if (!this->rotated)
-			if (this->inverted)	return this->right(false)+5;
-			else return this->left(false)-5;
+			if (this->inverted)	return this->right(false);
+			else return this->left(false);
 		else return this->_x;
 		break;
 	
 	case side2:
 		if (!this->rotated)
-			if (this->inverted)	return this->left(false)-5;
-			else return this->right(false)+5;
+			if (this->inverted)	return this->left(false);
+			else return this->right(false);
 		else return this->_x;
 		break;
 
@@ -173,37 +173,41 @@ int CloneContent::x(ConnectionType ct)
 ***************************/
 int CloneContent::y(ConnectionType ct)
 {
+	int value;
+
 	switch (ct)
 	{
 	case in:
-		if (this->rotated) return this->_y;
-		else if (this->inverted) return this->bottom(false);
-		else return this->top(false);
+		if (this->rotated) value = this->_y;
+		else if (this->inverted) value = this->bottom(false);
+		else value = this->top(false);
 		break;
 
 	case out:
-		if (this->rotated) return this->_y;
-		else if (this->inverted) return this->top(false);
-		else return this->bottom(false);
+		if (this->rotated) value = this->_y;
+		else if (this->inverted) value = this->top(false);
+		else value = this->bottom(false);
 		break;
 
 	case side1:
-		if (!this->rotated) return this->_y;
-		else if (this->inverted) return this->bottom(false)+5;
-		else return this->top(false)-5;
+		if (!this->rotated) value = this->_y;
+		else if (this->inverted) value = this->bottom(false);
+		else value = this->top(false);
 		break;
 
 	case side2:
-		if (!this->rotated) return this->_y;
-		else if (this->inverted) return this->top(false)-5;
-		else return this->bottom(false)+5;
+		if (!this->rotated) value = this->_y;
+		else if (this->inverted) value = this->top(false);
+		else value = this->bottom(false);
 		break;
 
 	case neutral:
 	default:
-		return this->_y;
+		value = this->_y;
 		break;
 	}
+
+	return value;
 }
 
 /***********************************************************************
@@ -242,10 +246,14 @@ int CloneContent::width(bool withMargin)
 {
 	VertexProperty * vp = this->layout->getGraphModel()->getProperties(this->vertex);
 	CloneProperty cp;
+
+	// Only concerns species
 	if (this->getNeighbours().size() > 0) cp = isClone;
-	else if (this->getContainer()->getTypeLabel() == "CloneContainer") cp = midget;
+	else if (this->getContainer()->getTypeLabel() == "CloneContainer") cp = isMidget;
 	else cp = notClone;
-//	if (this->rotated) cp = rotated; // overload
+	// Only concerns reactions, but dangerous overload of the parameter :/ [!]
+	if (this->rotated) cp = isRotated;
+
 	VertexStyle * vs = this->layout->getStyleSheet()->getVertexStyle(vp, cp);
 
 	if (withMargin) return vs->getFullWidth(this->label); // [!] what if the displayed label is not the property's label? Clones should store labels of their own, to be displayed by the VertexGraphics...
@@ -258,14 +266,25 @@ int CloneContent::height(bool withMargin)
 {
 	VertexProperty * vp = this->layout->getGraphModel()->getProperties(this->vertex);
 	CloneProperty cp;
-	if (this->getNeighbours().size()) cp = isClone;
-	else if (this->getContainer()->getTypeLabel() == "CloneContainer") cp == midget;
+
+	// Only concerns species
+	if (this->getNeighbours().size() > 0) cp = isClone;
+	else if (this->getContainer()->getTypeLabel() == "CloneContainer") cp = isMidget;
 	else cp = notClone;
-//	if (this->rotated) cp = rotated; // overload
+	// Only concerns reactions, but dangerous overload of the parameter :/ [!]
+	if (this->rotated) cp = isRotated;
+
 	VertexStyle * vs = this->layout->getStyleSheet()->getVertexStyle(vp, cp);
 	
 	if (withMargin) return vs->getFullHeight(this->label); // [!] what if the displayed label is not the property's label? Clones should store labels of their own, to be displayed by the VertexGraphics...
 	else return vs->getBoundingHeight(this->label);
+}
+
+bool CloneContent::hasConnector(BGL_Edge edge)
+{
+	for (std::list<Connector*>::iterator it = this->cList.begin(); it != this->cList.end(); ++it)
+		if ((*it)->getEdge() == edge) return true;
+	return false;
 }
 
 /***********************************************************************
@@ -287,9 +306,10 @@ std::list<BGL_Vertex> CloneContent::getNeighbours()
 ****************
 * adds a neighbour to the list
 ******************************/
-void CloneContent::addNeighbour(BGL_Vertex v)
+void CloneContent::addNeighbour(BGL_Vertex v, BGL_Edge e)
 {
 	this->neighbours.push_back(v);
+	this->neighbouredges.push_back(e);
 }
 
 /******************
@@ -297,9 +317,10 @@ void CloneContent::addNeighbour(BGL_Vertex v)
 *******************
 * removes a neighbour to the list
 *********************************/
-void CloneContent::removeNeighbour(BGL_Vertex v)
+void CloneContent::removeNeighbour(BGL_Vertex v, BGL_Edge e)
 {
 	this->neighbours.remove(v);
+	this->neighbouredges.remove(e);
 }
 
 /***********************************************************************
@@ -340,6 +361,7 @@ void CloneContent::removeConnector(Connector *c)
 	this->cList.remove(c);
 }
 
+// returns the clones that are actually connected to the current clone by a connector
 std::list<CloneContent *> CloneContent::getNeighbourClones()
 {
 	std::list<CloneContent *> nClones;

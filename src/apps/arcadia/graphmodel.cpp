@@ -207,9 +207,9 @@ BGL_Edge GraphModel::addEdge(BGL_Vertex source, BGL_Vertex target, EdgeProperty 
 {
 	BGL_Edge e; bool inserted;
 
-	// [!] checking for useless duplicates! 2008-05-19
-	if (this->isEdge(source, target)) return this->getEdge(source, target);
-	// I don't allow several edges to link the same nodes together in the same direction
+	// [!] checking for duplicates!
+	//	if (this->isEdge(source, target)) std::cout << "!!!multi-arc!!!" << std::endl; // we actually allow these
+	// return this->getEdge(source, target);
 
 	tie (e, inserted) = add_edge(source, target, this->graph);
 	if (!properties) properties = new EdgeProperty();
@@ -432,10 +432,12 @@ bool GraphModel::isEdge(BGL_Vertex u, BGL_Vertex v)
 	return edge(u, v, this->graph).second;
 }
 
-BGL_Edge GraphModel::getEdge(BGL_Vertex u, BGL_Vertex v)
+/*
+BGL_Edge GraphModel::getEdge(BGL_Vertex u, BGL_Vertex v);
 {
-	return edge(u, v, this->graph).first;
+	return edge(u, v, this->graph).first; // [!] problem if we have a multigraph
 }
+*/
 
 /****************************************************************************************
 * Obtaining properties                                                                  *
@@ -482,14 +484,16 @@ void GraphModel::defaultLayout(bool update)
 
 	// adds vertices as CloneContents (1-1)
 	std::list<BGL_Vertex> vList = this->getVertices();
-	for (std::list<BGL_Vertex>::iterator it = vList.begin(); it != vList.end(); ++it) {
+	for (std::list<BGL_Vertex>::iterator it = vList.begin(); it != vList.end(); ++it)
+	{
 		new CloneContent(*it, graphLayout);
 	}
 
 	// adds edges as Connectors (1-1)
 	std::list<BGL_Edge> eList = this->getEdges();
-	for (std::list<BGL_Edge>::iterator it = eList.begin(); it != eList.end(); ++it) {
-		graphLayout->connect(this->getSource(*it), this->getTarget(*it));
+	for (std::list<BGL_Edge>::iterator it = eList.begin(); it != eList.end(); ++it)
+	{
+		graphLayout->connect(*it);
 	}	
 
 	if (update) graphLayout->update();
@@ -515,7 +519,11 @@ int GraphModel::layoutNumber() { return this->layoutInformation.size(); }
 /*******************************************
 * getLayout: returns the "numberth" layout *
 *******************************************/
-GraphLayout * GraphModel::getLayout(int number) { return this->layoutInformation[number]; }
+GraphLayout * GraphModel::getLayout(int number)
+{
+	if (number >= this->layoutInformation.size() || number < 0) return NULL;
+	return this->layoutInformation[number];
+}
 
 int GraphModel::getNumber(GraphLayout * gl)
 {
@@ -539,16 +547,32 @@ void GraphModel::updateLayout(GraphLayout * gl, bool edgesOnly, bool fast)
 **********************************************/
 void GraphModel::toggleCloning(BGL_Vertex v, GraphLayout * gl, CloneContent * c)
 {
+	int n = 0;
 	if (this->vertexProperties[v]->clonable()) 
 	{
 		if (gl) { if (gl->isVisible()) gl->toggleCloning(v, c); }
-		else for (int i = 0; i < this->layoutNumber(); ++i) { if (this->getLayout(i)->isVisible()) this->getLayout(i)->toggleCloning(v, c); }
+		else for (int i = 0; i < this->layoutNumber(); ++i)
+		{
+			if (this->getLayout(i)->isVisible())
+			{
+				n++;
+				this->getLayout(i)->toggleCloning(v, c);
+			}
+		}
 	}
 	else
 	{
 		if (gl)  { if (gl->isVisible()) gl->toggleBranching(v); }
-		else for (int i = 0; i < this->layoutNumber(); ++i) { if (this->getLayout(i)->isVisible()) this->getLayout(i)->toggleBranching(v); }
+		else for (int i = 0; i < this->layoutNumber(); ++i)
+		{
+			if (this->getLayout(i)->isVisible())
+			{
+				n++;
+				this->getLayout(i)->toggleBranching(v);
+			}
+		}
 	}
+	if (!gl && n!=1) std::cout << "Wrong number of visible layouts!: " << n << " != 1" << std::endl;
 }
 
 GraphLayout * GraphModel::getNextLayout(GraphLayout * gl, int i)
@@ -603,7 +627,6 @@ GraphLayout * GraphModel::addLayout(std::list<BGL_Vertex> vList, bool neighbourh
 	std::vector<GraphLayout*> lList = this->layoutInformation;
 	for (std::vector<GraphLayout*>::iterator it = lList.begin(); it != lList.end(); ++it)
 	{
-		std::cout << (*it)->name << " VS " << layoutId << std::endl;
 		if ((*it)->name == layoutId) { layout = *it; break; }
 	}
 
@@ -639,7 +662,7 @@ GraphLayout * GraphModel::addLayout(std::list<BGL_Vertex> vList, bool neighbourh
 		}
 		else
 		{
-			graphLayout->fillGaps(roots);
+//			graphLayout->fillGaps(roots);
 		}
 
 		graphLayout->update();
@@ -648,6 +671,7 @@ GraphLayout * GraphModel::addLayout(std::list<BGL_Vertex> vList, bool neighbourh
 	return NULL;
 }
 
+/*
 void GraphModel::expandLayout(std::list<BGL_Vertex> vList, GraphLayout * gl)
 {
 	if (gl) { if (gl->isVisible()) gl->expand(vList); }
@@ -659,6 +683,7 @@ void GraphModel::expandLayout(std::list<BGL_Vertex> vList, GraphLayout * gl)
 		}
 	}
 }
+*/
 
 void GraphModel::toggleAvoidingEdges()
 {
@@ -668,11 +693,39 @@ void GraphModel::toggleAvoidingEdges()
 	}
 }
 
+GraphLayout * GraphModel::getCurrentLayout()
+{
+	GraphLayout * layout = NULL;
+	for (int i = 0; i < this->layoutNumber(); ++i)
+	{
+		GraphLayout * gl = this->getLayout(i);
+		if (gl->isVisible()) layout = gl;
+	}
+	return layout;
+}
+
+void GraphModel::destroyLayout(GraphLayout * del)
+{
+	if (!del) return;
+
+	std::vector<GraphLayout*> newList;
+	for (int i = 0; i < this->layoutNumber(); ++i)
+	{
+		GraphLayout *gl = this->getLayout(i);
+		if (gl != del) { newList.push_back(gl); }
+	}
+
+	this->layoutInformation = newList;
+	delete del;
+}
+
+
 GraphLayout * GraphModel::destroyLayout()
 {
 	GraphLayout* del = NULL;
 	if (this->layoutNumber() < 2) return del;
 
+	// Like get current layout, but also gets a list of all other layouts
 	std::vector<GraphLayout*> newList;
 	for (int i = 0; i < this->layoutNumber(); ++i)
 	{

@@ -80,9 +80,9 @@ std::string VertexProperty::getInfo() { return "Vertex Unknown"; }
 * Returns a label that depends on the vertex type
 * [!] a bit messy? should it be a static method?
 *************************************************/
-std::string VertexProperty::getTypeLabel()
+std::string VertexProperty::getTypeLabel(bool highest)
 {
-	std::cout << "vertex" << std::endl;
+	if (highest && this->getSuperTypeLabel() != "") return this->getSuperTypeLabel();
 	return "Vertex";
 }
 	

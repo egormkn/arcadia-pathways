@@ -73,15 +73,12 @@ public:
 	void layout(ContainerContent * container);
 
 private:
-    Agraph_t *graph;
-    GVC_t *graphContext;
-	std::map <Content*, Agnode_t *> contentToGraphVizNode;
 	std::string method;
 	
-	std::list<Connector*> dealWithBranches(ContainerContent * container, std::list<Connector*> &connectors);
-	
+	// for branches and triangles...
+	std::list<Connector*> dealWithBranches(ContainerContent * container, std::list<Connector*> &connectors);	
 	std::list<ContainerContent*> initTriangleContainerNodes(std::list<Content*> & cList);
-	void initTriangleContainerEdges(std::list<ContainerContent*> tList, ContainerContent * container);
+	void initTriangleContainerEdges(std::list<ContainerContent*> tList, ContainerContent * container, Agraph_t * graph, std::map <Content*, Agnode_t *> &contentToGraphVizNode);
 	void layoutTriangleContainers(std::list<ContainerContent*> tList);
 };
 

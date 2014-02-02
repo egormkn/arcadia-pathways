@@ -33,6 +33,7 @@
 #include "speciesvertexproperty.h"
 
 #include "ontologycontainer.h"
+#include "pathwaygraphmodel.h"
 
 // LibSBML
 #include <sbml/SBMLTypes.h>
@@ -40,7 +41,7 @@
 /***********************************
 * Constructor: sets up the Species *
 ************************************/
-SpeciesVertexProperty::SpeciesVertexProperty(Species * s) : PathwayVertexProperty(s) { }
+SpeciesVertexProperty::SpeciesVertexProperty(Species * s, PathwayGraphModel * m) : PathwayVertexProperty(s, m) { }
 		
 std::string SpeciesVertexProperty::getLabel()
 {
@@ -127,12 +128,16 @@ std::string SpeciesVertexProperty::getInfo()
 	return text;
 }
 
-std::string SpeciesVertexProperty::getTypeLabel()
+std::string SpeciesVertexProperty::getTypeLabel(bool highest)
 {
+	if (highest && this->getSuperTypeLabel()!="") return this->getSuperTypeLabel();
+	
 	std::string type = "";
+
 	OntologyContainer * sbo = OntologyContainer::GetMyLocalSBO();
 	if (sbo) type = sbo->getName(this->getSBOTermId());
 	if (type == "") type = "Species";
+
 	return type;
 }
 
@@ -140,7 +145,7 @@ std::string SpeciesVertexProperty::getSuperTypeLabel()
 {
 	std::string type = "";
 	
-	if (this->getSBOTerm() > 0) type = "Species";
+	if (this->getSBOTerm() > 0) if (this->getTypeLabel() != "Species") type = "Species";
 	
 	return type;
 }
@@ -154,7 +159,7 @@ std::string SpeciesVertexProperty::getCompartment()
 std::map<std::string, std::string> SpeciesVertexProperty::getInfoMap()
 {
 	std::map<std::string, std::string> infoMap = PathwayVertexProperty::getInfoMap();
-	infoMap["Compartment"] = this->getCompartment();
+	infoMap["Compartment"] = this->model->getCompartmentLabel( this->getCompartment() );
 
 	Species * species = (Species*) this->base;
 	if (!species) return infoMap;

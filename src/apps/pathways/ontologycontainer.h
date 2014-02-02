@@ -49,20 +49,17 @@ class QDomElement;
 class OntologyContainer
 {
 public:
-	OntologyContainer(std::string fileName); // at the moment, only support the XML format used for SBO
+	OntologyContainer(std::string fileName = ""); // at the moment, only support the XML format used for SBO
 	std::string getName(std::string sboId);
-	
 	int inherits(std::string child, std::string parent);
-	
 	static OntologyContainer * GetMyLocalSBO();
+	
+	static void LoadLocalSBO(std::string dirName = "", bool fullPath = false);
 	
 private:
 	static OntologyContainer * MyLocalSBO;
-
 	std::map<std::string, std::string> idToParent;
-
 	std::map<std::string, std::string> idToName;
-	
 	static std::string GetTextFromUniqueTag(QDomElement * e, std::string tag);
 };
 

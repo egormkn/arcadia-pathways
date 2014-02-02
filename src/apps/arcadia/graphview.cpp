@@ -42,7 +42,7 @@
 * adds the View to the Controller
 * and displays the Model (possibly NULL)
 ****************************************/
-GraphView::GraphView(GraphController * c) : controller(c)
+GraphView::GraphView(GraphController * c) : controller(c), graphModel(NULL)
 {
 	this->controller->addView(this);
 }
@@ -93,12 +93,15 @@ void GraphView::switchView(std::list<BGL_Vertex> vList)
 	if (this->controller) this->controller->switchView(vList);
 }
 
+/*
 void GraphView::createView(std::list<BGL_Vertex> vList)
 {
 	if (this->controller) this->controller->createView(vList);
 }
-
+*/
+/*
 void GraphView::expandView(std::list<BGL_Vertex> vList, GraphLayout * gl)
 {
 	if (this->controller) this->controller->expandView(vList, gl);
 }
+*/

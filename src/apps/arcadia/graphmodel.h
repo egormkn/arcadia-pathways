@@ -53,7 +53,7 @@ class StyleSheet;
 * [!] should be in a separate header? *
 ***************************************/
 
-// The Graph type
+// The Graph type (allows multigraph)
 typedef adjacency_list<	listS, // out edges
 						listS, // vertices
 						bidirectionalS,
@@ -104,6 +104,8 @@ public:
 	GraphModel(std::string fName = "No Document", bool createStyleSheet = true);
 	virtual ~GraphModel();
 
+	GraphLayout * getCurrentLayout();
+
 	// file name and title
 	std::string getFileName();
 	void setFileName(std::string fName);
@@ -125,8 +127,9 @@ public:
 	std::list<BGL_Edge> getEdges();
 	BGL_Vertex getSource(BGL_Edge e);
 	BGL_Vertex getTarget(BGL_Edge e);
+/*
 	BGL_Edge getEdge(BGL_Vertex u, BGL_Vertex v);
-
+*/
 	// write vertices
 	BGL_Vertex addVertex(VertexProperty * properties = NULL);
 	void removeVertex(BGL_Vertex v);
@@ -156,14 +159,17 @@ public:
 	void toggleCloning(BGL_Vertex v, GraphLayout * gl, CloneContent * c);
 	void updateLayout(GraphLayout * gl, bool edgesOnly, bool fast);
 	GraphLayout * addLayout(std::list<BGL_Vertex> vList, bool neighbourhood = true);
+/*
 	void expandLayout(std::list<BGL_Vertex> vList, GraphLayout * gl);
-	
+*/
+
 	GraphLayout * getNextLayout(GraphLayout * gl, int i);
 	
 	StyleSheet * getStyleSheet() { return this->layoutStyleSheet; }
 
 	void toggleAvoidingEdges();
 	GraphLayout * destroyLayout();
+	void destroyLayout(GraphLayout * gl);
 	
 	virtual void toggleFusing(std::list<BGL_Vertex> vList) {}
 

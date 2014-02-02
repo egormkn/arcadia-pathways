@@ -100,6 +100,7 @@ public:
 
 	void setVisible(bool visible);
 	
+	std::list<VertexGraphics *> getVertexGraphics() { return this->vertices; }
 	std::list<VertexGraphics *> getVertexGraphics(BGL_Vertex v);
 	VertexGraphics * getVertexGraphics(CloneContent * c);	
 

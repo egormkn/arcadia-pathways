@@ -55,15 +55,25 @@ public:
 	static int SourceSink;
 	static int Observable;
 	static int Perturbation;
+	static int PerturbingAgent;
 	static int Complex;
+
 	static int Transition;
 	static int Association;
 	static int Dissociation;
+	
 	static int Modulation;
 	static int Stimulation;
 	static int Catalysis;
 	static int Inhibition;
 	static int Trigger;
+
+	static int ModulationActor;
+	static int StimulationActor;
+	static int CatalysisActor;
+	static int InhibitionActor;
+	static int TriggerActor;
+
 	static int AndOperator;
 	static int OrOperator;
 	static int NotOperator;	

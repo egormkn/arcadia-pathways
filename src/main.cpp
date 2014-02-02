@@ -31,6 +31,8 @@
 // Local main window class
 #include <pathways/pathwaygraphwindow.h>
 
+#include <iostream>
+
 /*******
 * main *
 ********
@@ -42,7 +44,18 @@ int main(int argc, char * argv[])
 
 	bool interactive = true;
 
-	PathwayGraphWindow pathwayGraphWindow(interactive);
+	// to find the path to the SBO file
+	std::string dir = argv[0];
+	int endOfDir = dir.find_last_of('\\');
+	#ifdef MAC_COMPILATION
+	endOfDir = dir.find_last_of('/');
+	#endif
+	dir = dir.substr(0, endOfDir);
 
+	// to open the required model
+	std::string file = "";
+	if (argc > 1) file = argv[1];
+	PathwayGraphWindow pathwayGraphWindow(interactive, dir, file);
+	
 	return app.exec();
 }

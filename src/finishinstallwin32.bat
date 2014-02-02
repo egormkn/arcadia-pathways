@@ -29,5 +29,5 @@ rmdir ..\win32\res
 echo "Old Resources removed"
 mkdir ..\win32\res
 echo "New Resources created"
-cp ..\res\* ..\win32\res
+copy ..\res\* ..\win32\res
 echo "New Resources copied"

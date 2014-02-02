@@ -319,15 +319,15 @@ QPainterPath VertexGraphics::getShape(const QRectF r) const
 		path.lineTo(r.right(), (r.top()+r.bottom()) / 2);
 */
 		path.moveTo(r.left(), (r.top()+r.bottom()) / 2);
-		path.lineTo(r.left()+5, (r.top()+r.bottom()) / 2);
+		path.lineTo(r.left()-5, (r.top()+r.bottom()) / 2);
 		path.moveTo(r.right(), (r.top()+r.bottom()) / 2);
-		path.lineTo(r.right()-5, (r.top()+r.bottom()) / 2);
+		path.lineTo(r.right()+5, (r.top()+r.bottom()) / 2);
 
-		path.moveTo(r.left()+5, r.top()+5);
-		path.lineTo(r.left()+5, r.bottom()-5);		
-		path.lineTo(r.right()-5, r.bottom()-5);		
-		path.lineTo(r.right()-5, r.top()+5);		
-		path.lineTo(r.left()+5, r.top()+5);		
+		path.moveTo(r.left(), r.top());
+		path.lineTo(r.left(), r.bottom());		
+		path.lineTo(r.right(), r.bottom());		
+		path.lineTo(r.right(), r.top());		
+		path.lineTo(r.left(), r.top());		
 		break;
 
 	case squareIOVert: // flat edge
@@ -336,15 +336,15 @@ QPainterPath VertexGraphics::getShape(const QRectF r) const
 		path.lineTo((r.left()+r.right())/2, r.bottom());
 */
 		path.moveTo((r.left()+r.right())/2, r.top());
-		path.lineTo((r.left()+r.right())/2, r.top()+5);
+		path.lineTo((r.left()+r.right())/2, r.top()-5);
 		path.moveTo((r.left()+r.right())/2, r.bottom());
-		path.lineTo((r.left()+r.right())/2, r.bottom()-5);
+		path.lineTo((r.left()+r.right())/2, r.bottom()+5);
 
-		path.moveTo(r.left()+5, r.top()+5);
-		path.lineTo(r.left()+5, r.bottom()-5);		
-		path.lineTo(r.right()-5, r.bottom()-5);		
-		path.lineTo(r.right()-5, r.top()+5);		
-		path.lineTo(r.left()+5, r.top()+5);		
+		path.moveTo(r.left(), r.top());
+		path.lineTo(r.left(), r.bottom());		
+		path.lineTo(r.right(), r.bottom());		
+		path.lineTo(r.right(), r.top());		
+		path.lineTo(r.left(), r.top());		
 		break;
 		
 	case circleIOHori:

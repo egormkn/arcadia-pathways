@@ -72,7 +72,11 @@ public:
 	Content(GraphLayout * l, ContainerContent * c = NULL);
 	virtual ~Content();
 
+	bool setAsCore();
+
 	std::string getId();
+
+	virtual std::string getLabel() { return "Content"; } 
 
 	bool hasContainer(ContainerContent * c);
 	ContainerContent * getContainer();

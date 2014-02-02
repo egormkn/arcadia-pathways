@@ -78,9 +78,11 @@ public:
 
 	BGL_Vertex getVertex();
 
+	bool hasConnector(BGL_Edge edge);
+
 	std::list<BGL_Vertex> getNeighbours();		
-	void addNeighbour(BGL_Vertex v);
-	void removeNeighbour(BGL_Vertex v);
+	void addNeighbour(BGL_Vertex v, BGL_Edge e);
+	void removeNeighbour(BGL_Vertex v, BGL_Edge e);
 
 	std::list<CloneContent *> getNeighbourClones();
 		
@@ -108,10 +110,13 @@ public:
 	
 	bool rotated;
 	bool inverted;
-
+	
+	std::list<BGL_Edge> getNeighbourEdges() { return this->neighbouredges; }
+	
 private:
 	BGL_Vertex vertex;
 	std::list<BGL_Vertex> neighbours;
+	std::list<BGL_Edge> neighbouredges;
 	std::list<Connector*> cList;
 	
 	int _x;

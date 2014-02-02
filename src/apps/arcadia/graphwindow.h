@@ -39,6 +39,8 @@
 // local
 class GraphController;
 
+#include <iostream>
+
 /****************
 * GraphWindow *
 *****************
@@ -63,8 +65,14 @@ class GraphWindow : public QMainWindow
 public:
 	GraphWindow(bool fullVersion, GraphController * gc = NULL, bool preloaded = false);
 	~GraphWindow();
+
+	// for QTest
+	GraphController * getController() { return this->controller; }
+	
+	void enableUndo(bool enable);
 	
 private slots: 
+	void undo();
 	void newGraph();
 	void openGraph();
 	void saveGraph();
@@ -78,9 +86,11 @@ private slots:
 	void updateLayout();
 	void arrangeSelection();
 
+protected:
+	void loadGraph(std::string filename = "");
+
 private:
 	void closeGraph();
-	void loadGraph(std::string filename = "");
 
 	void createViews(bool fullVersion);
 
@@ -88,6 +98,9 @@ private:
 	QAction * createAction(std::list<QAction*> &actionList, const char * name, const char * shortCut, const char * tip, std::string iconName = "");
 	QMenu * createMenu(std::list<QAction*> &actionList, const char * name);
 	QToolBar * createToolbar(std::list<QAction*> &actionList, const char * name, Qt::ToolBarAreas allowedAreas, Qt::ToolBarArea defaultArea);
+	QToolBar * createToolbar(QAction * action, const char * name, Qt::ToolBarAreas allowedAreas, Qt::ToolBarArea defaultArea);
+
+	QAction * undoAction;
 
 protected:
 	GraphController * controller;

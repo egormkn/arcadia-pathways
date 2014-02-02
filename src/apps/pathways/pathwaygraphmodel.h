@@ -45,9 +45,11 @@ class Compartment;
 class SBase;
 class Layout;
 class XMLNode;
+class FunctionDefinition;
 
 // local, because I do a lot of saving and loading here
 class ContainerContent;
+
 
 /***************
 * PathwayGraphModel *
@@ -79,7 +81,16 @@ public:
 	
 	void toggleFusing(std::list<BGL_Vertex> vList);
 	
+	std::string getLabelFromId(std::string id);
+	std::string getCompartmentLabel(std::string id);
+	// Returns: pair.first = function body, pair.second = function arguments
+	std::pair< std::string, std::list<std::string> > getFunctionDefinitionAsStrings(std::string id);
+	std::string getFunctionName(std::string id);
+	FunctionDefinition * getFunctionDefinition(std::string id);
+		
 private:
+	BGL_Edge findEdgeFromNeighbourRelationship(CloneContent * clone, BGL_Vertex neighbour, std::string relationship);
+
 	SBMLDocument * document;
 	std::map<std::string, BGL_Vertex> idToVertex;
 
@@ -115,9 +126,11 @@ private:
 	// loading layout info [!] a loader thing
 	void loadLayoutInfo();
 
+/*
 	bool loadLegacyLayoutInfo(unsigned int layoutNumber);
 	std::map<std::string, ContainerContent*> loadLegacyContainerInfo(GraphLayout * graphLayout, char * containerLine);
 	void loadLegacyCloneInfo(GraphLayout * graphLayout, std::map<std::string, ContainerContent*> mapContainer, char * id, char * coords);
+*/
 
 	void loadXMLLayoutInfo();
 	void loadXMLLayoutInfo(XMLNode * layoutNode);
