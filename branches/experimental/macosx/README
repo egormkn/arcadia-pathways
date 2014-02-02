@@ -1,0 +1,73 @@
+Licensing and Distribution Terms for Arcadia
+Copyright (C) 2007-2009 Alice Villeger, University of Manchester<alice.villeger@manchester.ac.uk>
+
+Arcadia is free software: you can redistribute it and/or modifyit under the terms of the GNU General Public License as published bythe Free Software Foundation, either version 3 of the License, or(at your option) any later version.This program is distributed in the hope that it will be useful,but WITHOUT ANY WARRANTY; without even the implied warranty ofMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See theGNU General Public License for more details.You should have received a copy of the GNU General Public Licensealong with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+                  ****************************
+
+This is the README file for the MacOSX distribution, which only contains an application package.
+To install this application package, simply drag and drop it anywhere.
+To run it, just double-click the arcadia.app directory.
+The source code for Arcadia is available at https://sourceforge.net/projects/arcadiapathways/
+
+                  ****************************
+
+Third-party software required by the Arcadia distribution
+
+Arcadia links to a number of free third-party software libraries.
+
+                  ============================
+
+For user convenience, these libraries have been statically linked to in the current MacOSX distribution:
+
+- Twines 1.0
+copyright (C) 1997-1998 James Marsh, released under the LGPL 2.1 or later
+Please see directory src/libs/twines/ for more information about Twines1.0 and its license terms.
+
+- Libavoid alpha version 2006
+copyright (C) 2004-2006 Michael Wybrow, released under the LGPL 2.1 or later.
+Please see directory src/libs/libavoid/ for more information about Libavoid and its license terms.
+
+- The Boost Graph Library
+released in Boost 1.38.0 under the Boost Software License 1.0.
+Please see http://www.boost.org/ for more information about the Boost Graph Library, its license terms, and its various copyright holders.
+
+- LibSBML 4.0.0
+copyright (c) 2005-2009 California Institute of Technology, copyright (c) 2002-2005 California Institute of Technology and Japan Science and Technology Agency, released under the LGPL 2.1 or later.
+Please see http://sbml.org/Software/libSBML/ for more information about LibSBML and its license terms.
+
+- Qt 4.5.1
+copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies), released under the LGPL 2.1.
+Please see http://www.qtsoftware.com/ for more information about Qt and its license terms.
+
+- Graphviz 2.20.3
+copyright (c) 1994-2004 AT&T Corp, released under the Common Public License 1.0.
+Please see http://www.graphviz.org/ for more information about Graphviz and its license terms.
+
+                  ----------------------------
+
+LibSBML requires the following libraries, which have also been statically linked to:
+
+- libbzip2 1.0.5
+copyright (C) 1996-2007 Julian Seward, released under a BDS-style license
+Please see http://www.bzip.org/ for more information about bzip2 and its license terms.
+
+- libxml2 2.7.3
+copyright (C) 1998-2003 Daniel Veillard, released under the MIT license.
+Please see http://xmlsoft.org/ for more information about libxml2 and its license terms.
+
+- libiconv 1.13
+copyright (C) 2000-2002, 2005-2006, 2008 Free Software Foundation, Inc., released under the LGPL 2 or later.
+Please see http://www.gnu.org/software/libiconv/ for more information about libiconv and its license terms.
+
+                  ----------------------------
+
+Graphviz requires the following libraries, which have also been statically linked to:
+
+- eXpat 2.0.1
+copyright (c) 1998, 1999, 2000 Thai Open Source Software Center Ltd, released under the MIT license.
+Please see http://expat.sourceforge.net/ for more information about eXpat and its license terms.
+
+- libltdl 3
+copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc., released as a part of Libtool under the LGP L2.1 or later.
+Please see http://www.gnu.org/software/libtool/ for more information about libtool and its license terms.

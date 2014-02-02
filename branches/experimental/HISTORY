@@ -1,0 +1,46 @@
+History
+
+30/03/10
+Minor bug fix
+Fixed some bugs in the interpretation of SBO as SBGN:
+association, dissociation, perturbing agent, and non SBGN SBO terms
+
+
+12/03/10
+Major bug fix! Brief summary below... (some minor bug fixes are omitted)
+- Application won't freeze anymore upon edge routing, display progress bar with option to cancel
+- Added undo function
+- various SBO bugs solved:
+	* ask for SBO XML file when not found
+	* display modifiers in SBGN thanks to proper SBO terms
+	* visual representation of modifiers fixed
+- Fixed bugs where reactions (and source or sink) were not being allocated to the right compartment
+container
+- Fixed bug preventing to reopen SBML L2v1 files after saving annotations
+- Fixed 2 bugs in arcadia layout format:
+	* source and sink that can be saved but not loaded
+	* support for multigraph model (e.g. where a species is both product and modifier of a reaction)
+- Fixed a number of bugs, to ensure inherent constraints on branch and triangle containers are still
+respected upon cloning/uncloning
+- More efficient cloning/uncloning when spanning different compartments
+- When errors are encountered upon trying to load a file, a dialog box with an error message is
+launched (instead of crashing the application with an uncaught runtime exception)
+
+22/10/09
+Updated to LibSBML4 in order to read SBML L2v4 files
+
+16/10/09
+Fixed layout bugs for triangle configuration and compartments
+
+26/08/09
+Fixed typo in graphwindow.cpp that caused an error when compiling on Linux
+
+31/07/09
+Corrected a few problems that appeared when testing the interoperability with COPASI
+via the layout extension (still not fully resolved)
+
+22/06/09
+- Corrected bug in finish install osx = wrong directory
+- Implemented filled-in SBGN clone markers
+- Corrected a discrepancy between control points and source/target in connector when changing
+connection point (resulted in loaded layout edges pointing at wrong connection point)
