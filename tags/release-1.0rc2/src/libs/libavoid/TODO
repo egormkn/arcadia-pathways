@@ -1,0 +1,4 @@
+TODO list:
+ o  Combine ShapeRef constructor and Router::addShape().
+ o  Make it so you don't have to call updateEndPoint twice after already
+    passing the two endpoints to the ConnRef constructor.
