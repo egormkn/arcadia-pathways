@@ -74,7 +74,7 @@ class CloneContent;
 class ContainerContent: public Content
 {
 public:
-	ContainerContent(GraphLayout *l, ContainerContent *c = NULL, std::string t = "GenericContainer", std::string l = "");
+	ContainerContent(GraphLayout *gl, ContainerContent *c = NULL, std::string t = "GenericContainer", std::string l = "");
 	virtual ~ContainerContent();
 
 	bool setCore(Content * c);
