@@ -20,7 +20,7 @@ PKG_CHECK_MODULES(QT4, [QtCore QtGui QtSvg QtXml >= 4.4.0], [
 ], [
   AC_MSG_ERROR([Qt 4 library not found])
 ])
-PKG_CHECK_MODULES(SBML, libsbml >= 5.0.0)
+PKG_CHECK_MODULES(SBML, libsbml < 5.0.0)
 PKG_CHECK_MODULES(GVC, libgvc)
 #PKG_CHECK_MODULES(PTHREAD, pthread-stubs)
 
