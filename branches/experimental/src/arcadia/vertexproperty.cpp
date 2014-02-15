@@ -32,6 +32,7 @@
 
 #include "vertexproperty.h"
 
+#include <stdio.h>
 // STL for "i to a" conversion
 #include <stdlib.h>
 
