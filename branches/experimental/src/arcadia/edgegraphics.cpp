@@ -39,7 +39,7 @@
 #include <QFrame> // for computing the visible area
 #include <QGraphicsView> // for computing the visible area
 
-#include <twines/include/twine.h>
+#include <twines/twine.h>
 #include <math.h>
 
 // local
