@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <stdio.h>
 
 #include "libavoid/shape.h"
 #include "libavoid/region.h"

@@ -26,6 +26,7 @@
 #include <list>
 #include <set>
 #include <map>
+#include <stdio.h>
 #include <iostream>
 #include "libavoid/geomtypes.h"
 
