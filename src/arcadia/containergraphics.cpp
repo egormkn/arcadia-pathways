@@ -41,7 +41,7 @@
 #include "containercontent.h";
 #include "containerstyle.h";
 
-#include <twines/include/twine.h>
+#include <twines/twine.h>
 
 /**************
 * Constructor *
