@@ -120,12 +120,14 @@ void ListGraphView::updateTree()
 	if (this->toggleView->checkState() != Qt::Checked) return;
 
 	std::list< CloneContent * > cList = this->graphLayout->getCloneContents();
+/* TODO - Correct the double declaration in this loop and uncomment it
 	for (std::list< CloneContent * >::iterator it = cList.begin(); it != cList.end(); ++it)
 	{
 		BGL_Vertex v = (*it)->getVertex();
 		std::map<BGL_Vertex, QTreeWidgetItem *>::iterator it = vertexToListItem.find(v);
 		if( it != vertexToListItem.end()) (*it).second->setHidden(false);
 	}
+*/
 }
 
 /**********
