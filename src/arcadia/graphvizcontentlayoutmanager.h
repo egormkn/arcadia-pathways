@@ -51,7 +51,7 @@
 #include <string>
 
 // GraphViz
-#include <gvc.h>
+#include <graphviz/gvc.h>
 
 // local
 class Content;

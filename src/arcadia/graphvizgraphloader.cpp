@@ -41,7 +41,7 @@
 #include "graphvizgraphloader.h"
 
 // GraphViz
-#include <gvc.h>
+#include <graphviz/gvc.h>
 
 // STL
 #include <sstream>
