@@ -209,8 +209,7 @@ void GraphvizContentLayoutManager::layout(ContainerContent * container)
 	float zoom = (this->method == "twopi")? 1.25: 0.75;
 
 	// getting the bounding box of the graph
-	box bb = GD_bb(graph); // boxf in latest version
-//	boxf bb = GD_bb(graph);
+	boxf bb = GD_bb(graph);
 	float right = bb.UR.x;	float top    = bb.UR.y;
 	float left  = bb.LL.x;	float bottom = bb.LL.y;
 
@@ -229,8 +228,7 @@ void GraphvizContentLayoutManager::layout(ContainerContent * container)
 		x0 = core->x(); y0 = core->y();
 		// we get the new coordinates in graphviz layout
 		Agnode_t * coreNode = contentToGraphVizNode[core];
-		point p0 = ND_coord_i(coreNode); // ND_coord and pointf in latest version
-//		pointf p0 = ND_coord(coreNode);
+		pointf p0 = ND_coord(coreNode);
 		// we translate the graphviz coordinates in our coordinates system
 		X0 = p0.x*zoom; Y0 = (top - p0.y)*zoom;
 	}
@@ -247,8 +245,7 @@ void GraphvizContentLayoutManager::layout(ContainerContent * container)
 		Content * c = (*it);
 		// graphviz coordinates
 		Agnode_t * gvNode = contentToGraphVizNode[c];
-		point p = ND_coord_i(gvNode); // ND_coord and pointf in latest version
-//		pointf p = ND_coord(gvNode);
+		pointf p = ND_coord(gvNode);
 		
 		// translated coordinates so that the core of the main container doesn't move
 		float X = p.x*zoom - X0;
