@@ -124,8 +124,8 @@ AM_CPPFLAGS = \
 #	$(PTHREAD_CFLAGS)
 
 LDADD = \
-	$(top_builddir)/lib/libavoid.a \
-	$(top_builddir)/lib/libtwine.a \
+	$(top_builddir)/lib/libavoid.la \
+	$(top_builddir)/lib/libtwine.la \
 	$(SBML_LIBS) \
 	$(GVC_LIBS) \
 	$(QT4_LIBS) \

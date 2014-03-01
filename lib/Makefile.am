@@ -1,6 +1,6 @@
-noinst_LIBRARIES = libavoid.a libtwine.a
+noinst_LTLIBRARIES = libavoid.la libtwine.la
 
-libavoid_a_SOURCES = \
+libavoid_la_SOURCES = \
 	libavoid/connector.cpp \
 	libavoid/geometry.cpp \
 	libavoid/graph.cpp \
@@ -14,8 +14,8 @@ libavoid_a_SOURCES = \
 	libavoid/vertices.cpp \
 	libavoid/visibility.cpp
 
-libtwine_a_CFLAGS = -O3 -pedantic -ffast-math
-libtwine_a_SOURCES = \
+libtwine_la_CFLAGS = -O3 -pedantic -ffast-math
+libtwine_la_SOURCES = \
 	twines/rb.c \
 	twines/twine.c
 
