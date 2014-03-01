@@ -7,9 +7,8 @@ AM_INIT_AUTOMAKE([foreign -Wall])
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
-AC_PROG_RANLIB
 AM_PROG_AR
-##LT_INIT
+LT_INIT
 PKG_CHECK_MODULES(QT4, [QtCore QtGui QtSvg QtXml >= 4.4.0], [
   AC_PATH_PROGS(MOC, [moc-qt4 moc], moc,
   		     `eval $PKG_CONFIG --variable=exec_prefix QtCore`/bin)
