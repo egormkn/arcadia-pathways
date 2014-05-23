@@ -310,12 +310,12 @@ void ContainerContent::updateBottom(bool withMargin)
 * Dimension                                                            *
 ***********************************************************************/
 
-/*******************************
+/***************************//**
 * width: right left difference *
 *******************************/
 int ContainerContent::width(bool withMargin) { return this->right(withMargin) - this->left(withMargin); }
 
-/********************************
+/****************************//**
 * height: top bottom difference *
 ********************************/
 int ContainerContent::height(bool withMargin) { return this->bottom(withMargin) - this->top(withMargin); }
@@ -332,8 +332,10 @@ bool ContainerContent::setCore(Content * c)
 	return true;
 }
 
-// very similar to Content::CommonAncestor, except that for the comparison we don't look at parents
-// but the container themselves directly
+///
+/// very similar to Content::CommonAncestor, except that for the comparison we don't look at parents
+/// but the container themselves directly
+///
 ContainerContent * ContainerContent::CommonAncestor(ContainerContent * c1, ContainerContent * c2)
 {
 	if (c1 == c2) return c1;
@@ -345,7 +347,7 @@ ContainerContent * ContainerContent::CommonAncestor(ContainerContent * c1, Conta
 	}
 }
 
-/******
+/**//**
 * add *
 *******
 * adds the new child to the list
@@ -373,7 +375,7 @@ void ContainerContent::add(std::list<CloneContent *> cList)
 	for (std::list<CloneContent *>::iterator it = cList.begin(); it != cList.end(); ++it) { this->add(*it); }
 }
 	
-/*********
+/*****//**
 * remove *
 **********
 * removes the child from the list
@@ -391,7 +393,7 @@ void ContainerContent::remove(Content *c)
 	}
 }
 	
-/******
+/**//**
 * has *
 *******
 * checks whether a Content is in the children list
@@ -401,7 +403,7 @@ bool ContainerContent::has(Content *c)
 	return ( std::find(this->children.begin(), this->children.end(), c) != this->children.end() );
 }
 
-/****************************************
+/************************************//**
 * getChildren: returns all the children *
 ****************************************/
 std::list<Content*> ContainerContent::getChildren() { return this->children; }
@@ -410,7 +412,7 @@ std::list<Content*> ContainerContent::getChildren() { return this->children; }
 * Content layout                                                       *
 ***********************************************************************/
 
-/****************
+/************//**
 * layoutContent *
 *****************
 * Asks all the children to perform their own layout
@@ -429,7 +431,7 @@ void ContainerContent::layoutContent()
 * Connector management                                                 *
 ***********************************************************************/
 
-/********************
+/****************//**
 * getInnerConnector *
 *********************
 * Browses the children's OutterConnector lists
@@ -460,7 +462,7 @@ std::list<Connector*> ContainerContent::getInnerConnectors()
 	return iList;
 }
 	
-/********************
+/****************//**
 * getOutterConnector *
 *********************
 * Browses the children's OutterConnector lists

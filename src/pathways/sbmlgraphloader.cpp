@@ -40,22 +40,22 @@
 // local
 #include "pathwaygraphmodel.h"
 
-/*************************************************************************
+/*********************************************************************//**
 * Constructor: just initializes the doc to NULL and loads the given file *
 *************************************************************************/
 SBMLGraphLoader::SBMLGraphLoader(std::string fName) : document(NULL) { this->load(fName); }
 
-/*************************************
+/*********************************//**
 * Destructor: calls the clear method *
 *************************************/
 SBMLGraphLoader::~SBMLGraphLoader() { this->clear(); }
 
-/**************************************
+/**********************************//**
 * clear: deletes the current document *
 **************************************/
 void  SBMLGraphLoader::clear() { if (this->document) delete this->document; }
 
-/*******
+/***//**
 * load *
 ********
 * sets up the fileName,
@@ -121,7 +121,7 @@ void SBMLGraphLoader::load(std::string fName)
 	}
 }
 
-/***********
+/*******//**
 * getModel *
 ************
 * If there is an SBMLDocument,

@@ -69,8 +69,10 @@ ConnectorLayoutManager::~ConnectorLayoutManager()
 	delete pd;
 }
 
-// This can be time consuming, but should not be interrupted (in order to preserve memory integrity)
-// So it is run in a background thread...
+///
+/// This can be time consuming, but should not be interrupted (in order to preserve memory integrity)
+/// So it is run in a background thread...
+///
 void ConnectorLayoutManager::clear()
 {
 /*
@@ -112,7 +114,9 @@ void ConnectorLayoutManager::clear()
 */
 }
 
-// Assumes a clear operation has already be performed if need be
+///
+/// Assumes a clear operation has already be performed if need be
+///
 void ConnectorLayoutManager::init()
 {
 /*
@@ -203,7 +207,9 @@ void ConnectorLayoutManager::init()
 */
 }
 
-// Assumes an initialization has already been performed. Can be interrupted
+///
+/// Assumes an initialization has already been performed. Can be interrupted
+///
 void ConnectorLayoutManager::process()
 {
 /*
@@ -340,7 +346,9 @@ void ConnectorLayoutManager::layout()
 	}
 }
 
-// Runs in the background when the thread gets started
+///
+/// Runs in the background when the thread gets started
+///
 void ConnectorLayoutManager::run() { this->clear(); }
 
 // Not currently used

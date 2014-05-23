@@ -51,7 +51,7 @@ class FunctionDefinition;
 class ContainerContent;
 
 
-/***************
+/***********//**
 * PathwayGraphModel *
 ****************
 * This subclass of GraphModel manages an SBMLDocument

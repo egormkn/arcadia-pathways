@@ -39,7 +39,7 @@
 // local
 #include "containercontent.h"
 
-/*********
+/*****//**
 * layout *
 **********
 * places all the children on a square grid

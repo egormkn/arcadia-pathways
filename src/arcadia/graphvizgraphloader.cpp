@@ -53,7 +53,7 @@
 #include "clonecontent.h"
 #include "connector.h"
 
-/***********
+/*******//**
 * getModel *
 ************
 * [!] Just generates a void model ATM
@@ -64,7 +64,7 @@ GraphModel * GraphvizGraphLoader::getModel()
 	return gm;
 }
 
-/*******
+/***//**
 * save *
 ********
 * For every layout in the model, a dot file is created

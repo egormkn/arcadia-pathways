@@ -32,16 +32,16 @@
 
 #include "contentlayoutmanager.h"
 
-// local subclasses to be instanciated by tghe factory
+// local subclasses to be instanciated by the factory
 #include "squarecontentlayoutmanager.h"
 #include "graphvizcontentlayoutmanager.h"
 
-/***************************************************
+/***********************************************//**
 * DefaultStrategy: Set to Hierarchy (graphviz dot) *
 ***************************************************/
 ContentLayoutStrategy ContentLayoutManager::DefaultStrategy = Hierarchy;
 
-/*******************
+/***************//**
 * GetLayoutManager *
 ********************
 * Creates and returns an appropriate subclass
@@ -79,12 +79,12 @@ ContentLayoutManager* ContentLayoutManager::GetLayoutManager(ContentLayoutStrate
 	return layoutManager;
 }
 
-/*****************************************************
+/*************************************************//**
 * Constructor: Sets the rotation to false by default *
 *****************************************************/
 ContentLayoutManager::ContentLayoutManager() { this->rotation = false; }
 
-/**************************************
+/**********************************//**
 * getType: Returns the local strategy *
 **************************************/
 ContentLayoutStrategy ContentLayoutManager::getType() const { return this->strategy; }

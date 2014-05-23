@@ -75,7 +75,7 @@ PathwayGraph* PathwayGraph::getProjection()
 }
 */
 
-/**************
+ /**********//**
 * Constructor *
 ***************
 * Creates the two property maps
@@ -89,7 +89,7 @@ GraphModel::GraphModel(std::string fName, bool createStyleSheet) : fileName(fNam
 	if (createStyleSheet) {	this->layoutStyleSheet = new StyleSheet(); }
 }
 
-/*************
+/*********//**
 * Destructor *
 **************
 * Removes every edges and vertices
@@ -108,22 +108,22 @@ GraphModel::~GraphModel()
 * Meta data and other text inputs and outputs                                           *
 ****************************************************************************************/
 
-/************************************
+/********************************//**
 * getFileName: Returns the fileName *
 ************************************/
 std::string GraphModel::getFileName() {	return this->fileName; }
 
-/************************************
+/********************************//**
 * setFileName: Changes the fileName *
 ************************************/
 void GraphModel::setFileName(std::string fName) { this->fileName = fName; }
 
-/*************************************
+/*********************************//**
 * getTitle: By default, the fileName *
 *************************************/
 std::string GraphModel::getTitle()  { return this->getFileName(); }
 
-/*******
+/***//**
 * save *
 ********
 * With the given fileName,
@@ -136,7 +136,7 @@ void GraphModel::save(std::string fName)
 	if (GraphLoader::Save(this, fName)) this->setFileName(fName);
 }
 
-/****************
+/************//**
 * stringVersion *
 *****************
 * Lists every vertices and their properties
@@ -182,7 +182,7 @@ std::string GraphModel::stringVersion()
 * Adding vertices and edges                                                             *
 ****************************************************************************************/
 
-/************
+/********//**
 * addVertex *
 *************
 * adds a new vertex, with some properties
@@ -197,7 +197,7 @@ BGL_Vertex GraphModel::addVertex(VertexProperty * properties)
 	return v;
 }
 
-/**********
+/******//**
 * addEdge *
 ***********
 * adds a new edge between two vertices, with some properties
@@ -222,7 +222,7 @@ BGL_Edge GraphModel::addEdge(BGL_Vertex source, BGL_Vertex target, EdgeProperty 
 * Removing vertices and edges                                                           *
 ****************************************************************************************/
 
-/***************
+/***********//**
 * removeVertex *
 ****************
 * removes all the edges first
@@ -237,7 +237,7 @@ void GraphModel::removeVertex(BGL_Vertex v)
 	remove_vertex(v, this->graph);
 }
 
-/*************
+/*********//**
 * removeEdge *
 **************
 * deletes the properties
@@ -250,7 +250,7 @@ void GraphModel::removeEdge(BGL_Edge e)
 	remove_edge(e, this->graph);
 }
 
-/*****************
+/*************//**
 * removeVertices *
 ******************
 * removes a list of vertices
@@ -263,12 +263,12 @@ void GraphModel::removeVertices(std::list<BGL_Vertex> vList)
 	}
 }
 
-/**************************************************
+/**********************************************//**
 * removeVertices: removes every existing vertices *
 **************************************************/
 void GraphModel::removeVertices() { this->removeVertices(this->getVertices()); }
 
-/**************
+/**********//**
 * removeEdges *
 ***************
 * removes a list of edges
@@ -281,12 +281,12 @@ void GraphModel::removeEdges(std::list<BGL_Edge> eList)
 	}
 }
 
-/********************************************
+/****************************************//**
 * removeEdges: removes every existing edges *
 ********************************************/
 void GraphModel::removeEdges() { this->removeEdges(this->getEdges()); }
 
-/*****************************************************************
+/*************************************************************//**
 * removeEdges: removes all the edges connected to a given vertex *
 *****************************************************************/
 void GraphModel::removeEdges(BGL_Vertex v) { this->removeEdges(this->getEdges(v)); }
@@ -295,17 +295,17 @@ void GraphModel::removeEdges(BGL_Vertex v) { this->removeEdges(this->getEdges(v)
 * Traversing vertices and edges                                                         *
 ****************************************************************************************/
 	
-/**************************************************
+/**********************************************//**
 * getSource: obtains the source vertex of an edge *
 **************************************************/
 BGL_Vertex GraphModel::getSource(BGL_Edge e) { return source(e, this->graph); }
 
-/**************************************************
+/**********************************************//**
 * getTarget: obtains the target vertex of an edge *
 **************************************************/
 BGL_Vertex GraphModel::getTarget(BGL_Edge e) { return target(e, this->graph); }
 
-/**************
+/**********//**
 * getVertices *
 ***************
 * obtains every vertices in the graph
@@ -323,7 +323,7 @@ std::list<BGL_Vertex> GraphModel::getVertices()
 	return vertexList;
 }
 
-/***********
+/*******//**
 * getEdges *
 ************
 * obtains every edges in the graph
@@ -341,7 +341,7 @@ std::list<BGL_Edge> GraphModel::getEdges()
 	return edgeList;
 }
 
-/****************
+/************//**
 * getNeighbours *
 *****************
 * obtains every vertices adjacent to a given vertex
@@ -367,7 +367,7 @@ std::list<BGL_Vertex> GraphModel::getNeighbours(BGL_Vertex v)
 	return neighbours;
 }
 
-/***********
+/*******//**
 * getEdges *
 ************
 * obtains every edges connected to a given vertex
@@ -391,7 +391,7 @@ std::list<BGL_Edge> GraphModel::getEdges(BGL_Vertex v)
 	return edgeList;
 }
 
-/*************
+/*********//**
 * getInEdges *
 **************
 * obtains every edges pointing at a given vertex
@@ -409,7 +409,7 @@ std::list<BGL_Edge> GraphModel::getInEdges(BGL_Vertex v)
 	return edgeList;
 }
 
-/**************
+/**********//**
 * getOutEdges *
 ***************
 * obtains every edges pointing from a given vertex
@@ -443,14 +443,14 @@ BGL_Edge GraphModel::getEdge(BGL_Vertex u, BGL_Vertex v);
 * Obtaining properties                                                                  *
 ****************************************************************************************/
 
-/***************************************************
+/***********************************************//**
 * getProperties: return the properties of a vertex *
 * [!] should probably encapsulate BGL_Vertex       *
 * in a Vertex class with a getProperty method...   *
 ***************************************************/
 VertexProperty * GraphModel::getProperties(BGL_Vertex v) { return this->vertexProperties[v]; }
 
-/**************************************************
+/**********************************************//**
 * getProperties: return the properties of an edge *
 * [!] should probably encapsulate BGL_Edge        *
 * in an Edge class with a getProperty method...   *
@@ -461,7 +461,7 @@ EdgeProperty * GraphModel::getProperties(BGL_Edge e) { return this->edgeProperti
 * Layout information                                                                    *
 ****************************************************************************************/
 
-/************
+/********//**
 * newLayout *
 *************
 * deletes existing layouts
@@ -499,7 +499,7 @@ void GraphModel::defaultLayout(bool update)
 	if (update) graphLayout->update();
 }
 
-/****************
+/************//**
 * deleteLayouts *
 *****************
 * deletes existing layouts
@@ -511,12 +511,12 @@ void GraphModel::deleteLayouts()
 	this->layoutInformation.clear();
 }
 
-/****************************************************
+/************************************************//**
 * layoutNumber: returns the total number of layouts *
 ****************************************************/
 int GraphModel::layoutNumber() { return this->layoutInformation.size(); }
 
-/*******************************************
+/***************************************//**
 * getLayout: returns the "numberth" layout *
 *******************************************/
 GraphLayout * GraphModel::getLayout(int number)
@@ -538,7 +538,7 @@ void GraphModel::updateLayout(GraphLayout * gl, bool edgesOnly, bool fast)
 	else for (int i = 0; i < this->layoutNumber(); ++i) this->getLayout(i)->update(edgesOnly, fast);
 }
 
-/****************
+/************//**
 * toggleCloning *
 *****************
 * For a given vertex, for a given layout

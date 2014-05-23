@@ -74,12 +74,12 @@ const lt_symlist_t lt_preloaded_symbols[] = {
 
 #include "clonecontent.h" // [!] for label display
 
-/**************************************************************************************************************************
+/**********************************************************************************************************************//**
 * Constructor: Initialises the graph to NULL, and the graphContext to a new one. Also sets up the method (dot by default) *
 **************************************************************************************************************************/
 GraphvizContentLayoutManager::GraphvizContentLayoutManager(std::string m) : method (m) {}
 
-/*************
+/*********//**
 * Destructor *
 **************
 * closes the graph (if any)
@@ -87,7 +87,7 @@ GraphvizContentLayoutManager::GraphvizContentLayoutManager(std::string m) : meth
 ***************************/
 GraphvizContentLayoutManager::~GraphvizContentLayoutManager() {}
 
-/*********
+/*****//**
 * layout *
 **********
 * First resets the graph and the map
@@ -356,7 +356,9 @@ void GraphvizContentLayoutManager::layout(ContainerContent * container)
 	this->layoutTriangleContainers(tList);
 }
 
-// in container and connectors, out inverselist and crossroad
+///
+/// in container and connectors, out inverselist and crossroad
+///
 std::list<Connector *> GraphvizContentLayoutManager::dealWithBranches(ContainerContent * container, std::list<Connector*> &connectors)
 {
 	std::list<Connector *> inverseList;
@@ -411,7 +413,9 @@ std::list<Connector *> GraphvizContentLayoutManager::dealWithBranches(ContainerC
 	return inverseList;
 }
 
-// modifies cList (reference)
+///
+/// modifies cList (reference)
+///
 std::list<ContainerContent*> GraphvizContentLayoutManager::initTriangleContainerNodes(std::list<Content*> & cList)
 {
 	// We get a list called tList, of all the triangle containers in the main container

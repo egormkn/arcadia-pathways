@@ -54,7 +54,7 @@
 * Public Methods                                                     *
 *********************************************************************/
 
-/**************
+/**********//**
 * Constructor *
 ***************
 * Creates controls and views,
@@ -79,7 +79,7 @@ GraphWindow::GraphWindow(bool fullVersion, GraphController * gc, bool preloaded)
 	gc->setGraphWindow(this);// linking the undo flag
 }
 
-/*************
+/*********//**
 * Destructor *
 **************
 * Closes the current graph
@@ -94,7 +94,7 @@ GraphWindow::~GraphWindow()
 * Private Slots                                                      *
 *********************************************************************/
 
-/***********
+/*******//**
 * newGraph *
 ************
 * Loads an empty graph
@@ -104,7 +104,7 @@ void GraphWindow::newGraph()
 	this->loadGraph();
 }
 
-/************
+/********//**
 * openGraph *
 *************
 * Opens a dialog box to choose a file
@@ -123,7 +123,7 @@ void GraphWindow::openGraph()
 	this->loadGraph(openedFile.toStdString());
 }
 
-/************
+/********//**
 * saveGraph *
 *************
 * Saves the current graph
@@ -164,7 +164,7 @@ void GraphWindow::screengrab()
 * Private Methods for handling the model                             *
 *********************************************************************/
 
-/*************
+/*********//**
 * closeGraph *
 **************
 * If a graph model exists, it gets deleted
@@ -176,7 +176,7 @@ void GraphWindow::closeGraph()
 	if (this->controller) this->controller->close();
 }
 
-/************
+/********//**
 * loadGraph *
 *************
 * Closes any existing graph handled by the Controller
@@ -211,7 +211,7 @@ void GraphWindow::loadGraph(std::string filename)
 * Private Methods for handling the views                             *
 *********************************************************************/
 
-/**************
+/**********//**
 * createViews *
 ***************
 * Creates a central graphic view (=ModelGraphView)
@@ -262,7 +262,7 @@ void GraphWindow::createViews(bool fullVersion)
 * Private Methods for handling the controls                          *
 *********************************************************************/
 
-/*****************
+/*************//**
 * createControls *
 ******************
 * Creates the New, Open and Save actions (linked to private slots)
@@ -379,7 +379,7 @@ QToolBar * GraphWindow::createToolbar(std::list<QAction*> &actionList, const cha
 	return toolBar;
 }
 
-/***************
+/***********//**
 * createAction *
 ****************
 * Creates an action with a given name, shortcut and tooltip

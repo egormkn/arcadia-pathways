@@ -42,7 +42,7 @@
 #include "graphlayout.h"
 #include "stylesheet.h"
 
-/************************************************************************
+/********************************************************************//**
 * Constructor: sets the graphModel to NULL and the busy status to false *
 *************************************************************************/
 GraphController::GraphController(std::string fileName) : _graphModel(NULL), busy(false), undoFlag(false), moving(false), layoutNumber(0), window(NULL)
@@ -56,7 +56,7 @@ void GraphController::setGraphWindow(GraphWindow * w)
 	if (this->window) this->window->enableUndo(this->undoFlag);
 }
 
-/*************
+/*********//**
 * Destructor *
 **************
 * Closes any existing graph
@@ -72,17 +72,17 @@ GraphController::~GraphController()
 	for (std::list<GraphView*>::iterator it = views.begin(); it != views.end(); ++it) { if (*it) delete (*it); }
 }
 
-/****************************************************
+/************************************************//**
 * getFileName: returns the name of the Model's file *
 *****************************************************/
 std::string GraphController::getFileName() { if (this->_graphModel) return this->_graphModel->getFileName(); else return ""; }
 
-/*******************************************
+/***************************************//**
 * getModelTitle: returns the Model's title *
 ********************************************/
 std::string GraphController::getModelTitle() { if (this->_graphModel) return this->_graphModel->getTitle(); else return ""; }
 
-/*********************************************************************************************
+/*****************************************************************************************//**
 * addView: adds the view to the list [!] doesn't check if the View points at that controller *
 **********************************************************************************************/
 void GraphController::addView(GraphView * view)
@@ -91,7 +91,7 @@ void GraphController::addView(GraphView * view)
 	if (this->_graphModel) view->display(this->_graphModel);
 }
 
-/*****************************************************************************************************
+/*************************************************************************************************//**
 * removeView: removes the view from the list [!] doesn't check if the View points at that controller *
 ******************************************************************************************************/
 void GraphController::removeView(GraphView * view)
@@ -102,7 +102,7 @@ void GraphController::removeView(GraphView * view)
 
 #include <fstream>
 
-/*******
+/***//**
 * load *
 ********
 * Closes any existing graph
@@ -122,7 +122,7 @@ void GraphController::load(std::string filename)
 	}	
 }
 
-/*******
+/***//**
 * save *
 ********
 * Calls the GraphModel's save method
@@ -143,7 +143,7 @@ void GraphController::save(std::string filename)
 	}
 }
 
-/********
+/****//**
 * close *
 *********
 * deletes the existing GraphModel and sets it to NULL
@@ -163,7 +163,7 @@ void GraphController::close()
 	this->_graphModel = NULL;
 }
 
-/*********
+/*****//**
 * select *
 **********
 * The list of vertex gets selected in every views but the one who called
@@ -201,7 +201,7 @@ void GraphController::moveToLayout(GraphLayout *gl, int i)
 	if (this->_graphModel) this->selectLayout(this->_graphModel->getNextLayout(gl, i), NULL);
 }
 
-/****************
+/************//**
 * toggleCloning *
 *****************
 * The vertex cloning status gets toggled in some Layout(s) of the Model

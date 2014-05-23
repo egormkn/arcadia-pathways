@@ -43,7 +43,7 @@
 #include "containercontent.h"
 #include "connector.h"
 
-/***********
+/*******//**
 * getModel *
 ************
 * creates a generic empty graph
@@ -93,7 +93,7 @@ GraphModel * DefaultGraphLoader::getModel()
 	return gm;
 }
 
-/*******
+/***//**
 * save *
 ********
 * Outputs the model's stringVersion in a text file
