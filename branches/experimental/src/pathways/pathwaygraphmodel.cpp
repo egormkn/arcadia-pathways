@@ -112,8 +112,8 @@ std::string PathwayGraphModel::getLabelFromId(std::string id)
 	return label;
 }
 
-/**************
-* Constructor *
+/**********//**
+* Constructor 
 ***************
 * Builds a PathwayGraphModel from an SBMLDocument
 * The GraphModel is initialized with the given filename
@@ -187,7 +187,7 @@ PathwayGraphModel::PathwayGraphModel(SBMLDocument *doc, std::string fName) : Gra
 	this->loadLayoutInfo();	
 }
 
-/*******
+/***//**
 * save *
 ********
 * For a given filename (possibly the default one)
@@ -212,7 +212,7 @@ void PathwayGraphModel::save(std::string fName)
 	}
 }
 
-/*************************************************
+/*********************************************//**
 * Destructor: destroys the existing SBMLDocument *
 *************************************************/
 PathwayGraphModel::~PathwayGraphModel()
@@ -220,7 +220,7 @@ PathwayGraphModel::~PathwayGraphModel()
 //	if (this->document) delete this->document; [!] problem when the same Utopia node gets given to two different controllers...
 }
 
-/***********
+/*******//**
 * getTitle *
 ************
 * If there is no model, returns the usual GraphModel title
@@ -245,7 +245,7 @@ std::string PathwayGraphModel::getTitle()
 	return title;
 }
 
-/*******************
+/***************//**
 * addPathwayVertex *
 ********************
 * Creates a new vertex with the given properties
@@ -262,7 +262,7 @@ BGL_Vertex PathwayGraphModel::addPathwayVertex(VertexProperty * properties)
 	return v;
 }
 
-/**********************
+/******************//**
 * removePathwayVertex *
 ***********************
 * Removes the vertex from the idToVertex map
@@ -278,33 +278,33 @@ void PathwayGraphModel::removePathwayVertex(BGL_Vertex v)
 	this->removeVertex(v);
 }
 
-/**************************************
+/**********************************//**
 * model: returns the Document's Model *
 **************************************/
 Model * PathwayGraphModel::model() { return this->document->getModel(); }
 
-/****************************************************************************
+/************************************************************************//**
 * speciesNumber: returns the number of species in the Model (0 if no Model) *
 ****************************************************************************/
 const unsigned int PathwayGraphModel::speciesNumber() { return this->model()? this->model()->getListOfSpecies()->size(): 0; }
-/********************************************************************************
+/****************************************************************************//**
 * reactionsNumber: returns the number of reactions in the Model (0 if no Model) *
 ********************************************************************************/
 const unsigned int PathwayGraphModel::reactionsNumber() { return this->model()? this->model()->getListOfReactions()->size(): 0; }
-/**************************************************************************************
+/**********************************************************************************//**
 * compartmentsNumber: returns the number of compartments in the Model (0 if no Model) *
 **************************************************************************************/
 const unsigned int PathwayGraphModel::compartmentsNumber() { return this->model()? this->model()->getListOfCompartments()->size(): 0; }
 
-/************************************************************************************************************************
+/********************************************************************************************************************//**
 * getSpecies: returns the species number i in the Model (NULL if no Model) [!] doesn't check whether i is in the range! *
 ************************************************************************************************************************/
 Species * PathwayGraphModel::getSpecies(unsigned int i) { return this->model()? (Species *) this->model()->getListOfSpecies()->get(i): NULL; }
-/**************************************************************************************************************************
+/**********************************************************************************************************************//**
 * getReaction: returns the reaction number i in the Model (NULL if no Model) [!] doesn't check whether i is in the range! *
 **************************************************************************************************************************/
 Reaction* PathwayGraphModel::getReaction(unsigned int i) { return this->model()? (Reaction *) this->model()->getListOfReactions()->get(i): NULL; }
-/********************************************************************************************************************************
+/****************************************************************************************************************************//**
 * getCompartment: returns the compartment number i in the Model (NULL if no Model) [!] doesn't check whether i is in the range! *
 ********************************************************************************************************************************/
 Compartment * PathwayGraphModel::getCompartment(unsigned int i) { return this->model()? (Compartment *) this->model()->getListOfCompartments()->get(i): NULL; }
@@ -464,7 +464,7 @@ void PathwayGraphModel::defaultLayout(bool update)
 *
 ***************************************************************************************************/
 
-/*****************
+/*************//**
 * loadLayoutInfo *
 ******************
 * First we make sure to delete all the existing layout information and clear the list
@@ -520,7 +520,7 @@ void PathwayGraphModel::loadLayoutInfo()
 	if (!this->layoutNumber()) this->newLayout(true);
 }
 
-/***************************************************************************************************
+/***********************************************************************************************//**
 * Loading: my XML annotation in SBML (preferred format)
 ***************************************************************************************************/
 
@@ -659,7 +659,9 @@ void PathwayGraphModel::loadXMLContentInfo(XMLNode * contentNode, GraphLayout * 
 	}
 }
 
-// given a clone, its neighbour node, and their relationship, finds the corresponding edge
+///
+/// given a clone, its neighbour node, and their relationship, finds the corresponding edge
+///
 BGL_Edge PathwayGraphModel::findEdgeFromNeighbourRelationship(CloneContent * clone, BGL_Vertex neighbour, std::string relationship)
 { // the relationship is that of a reaction (the neighbour) to a species (the clone)
 // if the relationship is unspecified (legacy) we must try all possibilities
@@ -743,7 +745,7 @@ BGL_Edge PathwayGraphModel::findEdgeFromNeighbourRelationship(CloneContent * clo
 *
 ***************************************************************************************************/
 
-/*****************
+/*************//**
 * saveLayoutInfo *
 ******************
 * First, for every layout in the model's list,

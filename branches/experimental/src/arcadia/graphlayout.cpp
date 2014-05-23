@@ -43,7 +43,7 @@
 
 #include "edgeproperty.h"
 
-/*************************************************************************
+/*********************************************************************//**
 * Constructor: Creates a new root Container with a default LayoutManager *
 * [!] can't chose the layout type!                                       *
 *************************************************************************/
@@ -55,7 +55,7 @@ GraphLayout::GraphLayout(GraphModel * gm, std::string n) : graphModel(gm), visib
 	this->layoutStyleSheet = this->graphModel->getStyleSheet();
 }
 
-/*****************************************************************************************************************************************
+/*************************************************************************************************************************************//**
 * Destructor: Deletes the root, and along with it the containers and clones it contains, and along with them the connectors linking them *
 * [!] pbe if the clones are NOT part of the root tree, for some odd reason                                                               *
 *****************************************************************************************************************************************/
@@ -65,7 +65,7 @@ GraphLayout::~GraphLayout() { delete this->root; delete this->connectorLayoutMan
 * CloneContent management                                                       *
 ***********************************************************************************/
 		
-/*****************************************************************************
+/*************************************************************************//**
 * map: adds the clone to the clone list linked to the vertex in the cloneMap *
 * [!] assumes the clone belongs to the root tree                             *
 *****************************************************************************/
@@ -74,7 +74,7 @@ void GraphLayout::map(BGL_Vertex v, CloneContent * cd)
 	this->cloneMap[v].push_back(cd);
 }
 
-/*****************************************************************
+/*************************************************************//**
 * getClone: Returns the 1st clone in the list for a given vertex *
 *****************************************************************/
 CloneContent * GraphLayout::getClone(BGL_Vertex v)
@@ -83,7 +83,7 @@ CloneContent * GraphLayout::getClone(BGL_Vertex v)
 	else return this->cloneMap[v].front();
 }
 
-/******************************************************
+/**************************************************//**
 * getClones: Returns the clone list of a given vertex *
 ******************************************************/
 std::list<CloneContent *> GraphLayout::getClones(BGL_Vertex v) { return this->cloneMap[v]; }
@@ -92,12 +92,12 @@ std::list<CloneContent *> GraphLayout::getClones(BGL_Vertex v) { return this->cl
 * Root Container management                                                        *
 ***********************************************************************************/
 
-/**************************************
+/**********************************//**
 * getRoot: Returns the Root Container *
 **************************************/
 ContainerContent * GraphLayout::getRoot() { return this->root; }
 
-/****************************************************
+/************************************************//**
 * update: Layouts the content of the Root Container *
 ****************************************************/
 void GraphLayout::update(bool edgesOnly, bool fast)
@@ -242,7 +242,7 @@ void GraphLayout::update(bool edgesOnly, bool fast)
 * Connector management                                                             *
 ***********************************************************************************/
 
-/**********
+/******//**
 * connect *
 ***********
 * Given a pair of BGL_Vertex,
@@ -278,7 +278,7 @@ Connector * GraphLayout::connectClones(CloneContent * uc, CloneContent * vc, BGL
 	return c;
 }
 
-/***************
+/***********//**
 * getConnector *
 ****************
 * Given a pair of BGL_Vertex,
@@ -302,7 +302,7 @@ Connector * GraphLayout::getConnector(BGL_Vertex u, BGL_Vertex v, BGL_Edge e)
 	return c;
 }
 
-/**********************
+/******************//**
 * getCloneContents *
 ***********************
 * From the map, returns a list of every Clones
@@ -322,7 +322,7 @@ std::list< CloneContent * > GraphLayout::getCloneContents()
 	return cList;
 }
 
-/****************
+/************//**
 * getConnectors *
 *****************
 * Returns the list of Connectors
@@ -330,7 +330,7 @@ std::list< CloneContent * > GraphLayout::getCloneContents()
 ********************************/
 std::list< Connector * > GraphLayout::getConnectors() { return this->connectorList; }
 
-/*************************************************************
+/*********************************************************//**
 * unmap: removes the clone from the map                      *
 * [!] doesn't check whateve happens to the clone             *
 * (we assume it's the clone itself calling, upon destruction *
@@ -340,7 +340,7 @@ void GraphLayout::unmap(CloneContent * cd)
 	this->cloneMap[cd->getVertex()].remove(cd);
 }
 
-/****************
+/************//**
 * toggleCloning *
 *****************
 * Whether the vertex already has several clones, or not
@@ -532,7 +532,7 @@ void GraphLayout::unbranch(CloneContent * c, ContainerContent * parent, Containe
 * Private methods                                                                  *
 ***********************************************************************************/
 
-/************
+/********//**
 * findClone *
 *************
 * Given a pair of BGL_Vertex,
@@ -570,7 +570,7 @@ CloneContent * GraphLayout::findClone (BGL_Edge edge, bool isSource)
 	return cd;
 }
 
-/********
+/****//**
 * clone *
 *********
 * Removes the current only clone of the vertex
@@ -716,7 +716,7 @@ void GraphLayout::unMap(ContainerContent * container)
 	this->refToContainer.erase(containerRef);	
 }
 
-/**********
+/******//**
 * unclone *
 ***********
 * Removes the current clones of the vertex
@@ -833,9 +833,11 @@ void GraphLayout::unclone(BGL_Vertex v, CloneContent * c)
 	this->update(true);
 }
 
-// roots is the core list of clones from a distance of which we wish to expand the neighbourhood
-// neighbourhood is the result of the expansion
-// depth is the remaining distance to cover to finish the expansion
+///
+/// roots is the core list of clones from a distance of which we wish to expand the neighbourhood
+/// neighbourhood is the result of the expansion
+/// depth is the remaining distance to cover to finish the expansion
+///
 std::list<CloneContent*> GraphLayout::recursiveNeighbourhoodBuilding(std::list<CloneContent*> roots, std::list<CloneContent*> neighbourhood, int depth)
 {
 	if (depth >= 0)	// when the depth reaches less than 0, we stop the recursion
@@ -851,10 +853,12 @@ std::list<CloneContent*> GraphLayout::recursiveNeighbourhoodBuilding(std::list<C
 	return neighbourhood;
 }
 
-// adds the connector and neighbour corresponding to the edge from the clone
-// the neighbour may already exist in the neighbourhood (if not, we add it)
-// incoming tells us which side of the edge the neighbour is
-// isVisible is false when we are reaching the limit of the neighbourhood view: clone is at depth 0, and its neighbour at depth -1 (if not already drawn)
+///
+/// adds the connector and neighbour corresponding to the edge from the clone
+/// the neighbour may already exist in the neighbourhood (if not, we add it)
+/// incoming tells us which side of the edge the neighbour is
+/// isVisible is false when we are reaching the limit of the neighbourhood view: clone is at depth 0, and its neighbour at depth -1 (if not already drawn)
+///
 std::list<CloneContent*> GraphLayout::addNeighbourFromEdge(BGL_Edge edge, CloneContent * clone, std::list<CloneContent *> neighbourhood, bool incoming, bool isVisible)
 {
 	// if the corresponding connector already exists, do nothing

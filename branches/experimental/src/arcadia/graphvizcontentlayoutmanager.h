@@ -56,7 +56,7 @@
 // local
 class Content;
 
-/************************
+/********************//**
 * GraphvizContentLayoutManager *
 *************************
 * Uses a graphviz library method to layout some content (dot, by default)

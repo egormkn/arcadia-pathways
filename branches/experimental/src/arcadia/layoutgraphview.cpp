@@ -53,7 +53,7 @@
 
 #include <fstream>
 
-/**************
+/**********//**
 * Constructor *
 ***************
 * sets up the views's Controller and Model, as well as the local layout number
@@ -81,7 +81,7 @@ void LayoutGraphView::display(GraphModel * gModel)
 	if (!this->graphModel) this->layout = NULL;
 }
 
-/**********
+/******//**
 * display *
 ***********
 * sets up the View's model
@@ -161,7 +161,7 @@ void LayoutGraphView::display()
 	this->updateLayout(this->layout, true);
 }
 
-/***********************
+/*******************//**
 * displayContainerTree *
 ************************
 * That recursive method adds the given container as a ContainerGraphics
@@ -190,7 +190,7 @@ void LayoutGraphView::displayContainerTree(ContainerContent *root)
 	}
 }
 
-/*****************
+/*************//**
 * exportGraphics *
 ******************
 * For this given layout, creates 3 files:
@@ -248,7 +248,7 @@ void LayoutGraphView::exportGraphics(std::string filename)
 	}
 }
 
-/****************
+/************//**
 * displayVertex *
 *****************
 * For a given vertex, a label and default style are obtained
@@ -290,7 +290,7 @@ void LayoutGraphView::displayVertex(BGL_Vertex v)
 	this->vertexToGraphics[v] = vGraphics;
 }
 
-/**************
+/**********//**
 * displayEdge *
 ***************
 * We get the edge's default style (cf its EdgeProperty)
@@ -320,7 +320,7 @@ void LayoutGraphView::displayEdge(BGL_Edge e)
 	this->connectorToGraphics[c] = ei;
 }
 
-/*********
+/*****//**
 * select *
 **********
 * We reset the current selection
@@ -348,7 +348,7 @@ void LayoutGraphView::select(std::list<BGL_Vertex> vList)
 	}
 }
 
-/************************
+/********************//**
 * mouseDoubleClickEvent *
 *************************
 * This overloaded method is called whenever a double click occurs on the scene
@@ -390,7 +390,7 @@ void PathwayScene::doubleClickNode(NodeView* node) {
 }
 */
 
-/************************
+/********************//**
 * changeVertexSelection *
 *************************
 * Called when the selectionChanged signal is detected
@@ -423,7 +423,7 @@ void LayoutGraphView::changeVertexSelection()
 	this->vertexSelectionChanged(vList);
 }
 
-/*****************
+/*************//**
 * cloningToggled *
 ******************
 * First checks whether the scene is concerned by that update:
@@ -514,7 +514,7 @@ void LayoutGraphView::layoutGotUpdated(GraphLayout * gl, bool edgesOnly, bool fa
 	}
 }
 
-/***************
+/***********//**
 * removeVertex *
 ****************
 * [!] Currently not really used
@@ -537,10 +537,12 @@ void LayoutGraphView::removeVertex(BGL_Vertex v)
 
 #include "connector.h"
 
-// Mouse Events: cf. manual placement
-// [!] maybe I only need one state variable = moving
-// [!] would it be possible to define a new temporary container tree in which the moving items would be layed out?
-// to determine if a moving sequence is about to start: some items must be selected first
+///
+/// Mouse Events: cf. manual placement
+/// [!] maybe I only need one state variable = moving
+/// [!] would it be possible to define a new temporary container tree in which the moving items would be layed out?
+/// to determine if a moving sequence is about to start: some items must be selected first
+///
 void LayoutGraphView::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
 	QGraphicsScene::mousePressEvent(event);
@@ -558,7 +560,9 @@ void LayoutGraphView::mousePressEvent(QGraphicsSceneMouseEvent *event)
 	// If not, it may mean the selection will change
 }
 
-// to handle movement
+///
+/// to handle movement
+///
 void LayoutGraphView::mouseMoveEvent (QGraphicsSceneMouseEvent * event ) {
 	QGraphicsScene::mouseMoveEvent(event);
 
