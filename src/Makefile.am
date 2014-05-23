@@ -142,8 +142,11 @@ LDADD = \
 #	$(PTHREAD_LIBS)
 
 
-.moc/moc_%.cpp: arcadia/%.h
+.moc/moc_%.cpp: arcadia/%.h | .moc
 	$(MOC) $(DEFS) $(arcadiapathways_CXXFLAGS) $< -o $@
+
+.moc:
+	mkdir .moc
 
 clean-local:
 	-rm -rf $(srcdir)/.moc/*
